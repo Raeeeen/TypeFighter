@@ -1,0 +1,252 @@
+import Link from "next/link";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import { getUserByDiscordId } from "@/lib/users";
+import "flag-icons/css/flag-icons.min.css";
+
+export default async function ProfilePage() {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  const user = await getUserByDiscordId(session.user.id);
+
+  if (!user) {
+    redirect("/onboarding");
+  }
+
+  const countryCode = user.country?.toLowerCase();
+
+  return (
+    <main className="min-h-screen overflow-hidden bg-[#090b0f] text-white">
+      {/* Background */}
+      <div className="pointer-events-none fixed inset-0">
+        <div
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px)
+            `,
+            backgroundSize: "48px 48px",
+          }}
+        />
+
+        <div className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-500/[0.06] blur-[180px]" />
+      </div>
+
+      {/* Header */}
+      <header className="relative z-10 flex h-20 items-center justify-between border-b border-white/[0.06] px-6 md:px-10">
+        <Link
+          href="/"
+          className="text-xl font-black tracking-tight transition hover:text-purple-400"
+        >
+          TYPE<span className="text-purple-400">FIGHTER</span>
+        </Link>
+
+        <Link
+          href="/"
+          className="text-xs font-bold uppercase tracking-widest text-white/30 transition hover:text-white"
+        >
+          ← Back to Menu
+        </Link>
+      </header>
+
+      {/* Content */}
+      <div className="relative z-10 mx-auto max-w-5xl px-6 py-12">
+
+        {/* Page heading */}
+        <div className="mb-10">
+          <p className="text-xs font-bold uppercase tracking-[0.4em] text-purple-400">
+            Fighter Profile
+          </p>
+
+          <h1 className="mt-3 text-5xl font-black tracking-tight md:text-6xl">
+            PROFILE
+          </h1>
+        </div>
+
+        {/* Profile Card */}
+        <section className="border border-white/[0.08] bg-white/[0.025]">
+
+          {/* Player header */}
+          <div className="border-b border-white/[0.07] p-6 md:p-8">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+
+              {/* Avatar */}
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={`${user.displayName} avatar`}
+                  className="h-24 w-24 border border-white/[0.1] object-cover"
+                />
+              ) : (
+                <div className="flex h-24 w-24 items-center justify-center border border-white/[0.1] bg-white/[0.05] text-3xl font-black">
+                  {(user.displayName ?? "P").charAt(0).toUpperCase()}
+                </div>
+              )}
+
+              {/* Name */}
+              <div className="flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/25">
+                  Fighter
+                </p>
+
+                <h2 className="mt-1 text-3xl font-black tracking-tight md:text-4xl">
+                  {user.displayName ?? user.username ?? "PLAYER"}
+                </h2>
+
+                <p className="mt-1 text-sm text-white/30">
+                  @{user.username ?? "unknown"}
+                </p>
+              </div>
+
+              {/* Online status */}
+              <div className="flex items-center gap-2 self-start border border-green-400/10 bg-green-400/[0.04] px-3 py-2 sm:self-center">
+                <span className="h-2 w-2 rounded-full bg-green-400" />
+
+                <span className="text-[9px] font-bold uppercase tracking-widest text-green-400/70">
+                  Online
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Country */}
+          <div className="border-b border-white/[0.07] p-6 md:p-8">
+
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-white/25">
+              Country
+            </p>
+
+            {countryCode ? (
+              <div className="flex items-center gap-4">
+
+                <span
+                  className={`fi fi-${countryCode}`}
+                  style={{
+                    width: "40px",
+                    height: "28px",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    display: "inline-block",
+                  }}
+                />
+
+                <div>
+                  <p className="text-lg font-black">
+                    {getCountryName(user.country)}
+                  </p>
+
+                  <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-white/20">
+                    {user.country}
+                  </p>
+                </div>
+
+              </div>
+            ) : (
+              <p className="text-sm text-white/30">
+                No country selected
+              </p>
+            )}
+          </div>
+
+          {/* Statistics */}
+          <div className="p-6 md:p-8">
+
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-white/25">
+              Statistics
+            </p>
+
+            <div className="grid gap-px border border-white/[0.07] bg-white/[0.07] sm:grid-cols-2">
+
+              {/* WPM */}
+              <div className="bg-[#0b0e13] p-6">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-white/25">
+                  WPM
+                </p>
+
+                <p className="mt-3 text-4xl font-black tracking-tight">
+                  {user.wpm ?? 0}
+                </p>
+
+                <p className="mt-1 text-[10px] uppercase tracking-widest text-white/15">
+                  Words per minute
+                </p>
+              </div>
+
+              {/* Highest Floor */}
+              <div className="bg-[#0b0e13] p-6">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-white/25">
+                  Highest Floor
+                </p>
+
+                <p className="mt-3 text-4xl font-black tracking-tight">
+                  {user.highestFloor ?? 0}
+                </p>
+
+                <p className="mt-1 text-[10px] uppercase tracking-widest text-white/15">
+                  Solo progression
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+        </section>
+
+        {/* Future stats */}
+        <div className="mt-6 grid gap-2 sm:grid-cols-3">
+
+          <div className="border border-white/[0.06] bg-white/[0.02] p-5">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-white/20">
+              Games Played
+            </p>
+
+            <p className="mt-2 text-2xl font-black">
+              0
+            </p>
+          </div>
+
+          <div className="border border-white/[0.06] bg-white/[0.02] p-5">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-white/20">
+              Best Time
+            </p>
+
+            <p className="mt-2 text-2xl font-black">
+              —
+            </p>
+          </div>
+
+          <div className="border border-white/[0.06] bg-white/[0.02] p-5">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-white/20">
+              Rank
+            </p>
+
+            <p className="mt-2 text-2xl font-black">
+              —
+            </p>
+          </div>
+
+        </div>
+
+        <p className="mt-10 text-center text-[10px] uppercase tracking-[0.25em] text-white/15">
+          TypeFighter
+        </p>
+
+      </div>
+    </main>
+  );
+}
+
+function getCountryName(code?: string | null) {
+  if (!code) return "Unknown";
+
+  const names = new Intl.DisplayNames(["en"], {
+    type: "region",
+  });
+
+  return names.of(code.toUpperCase()) ?? code;
+}
