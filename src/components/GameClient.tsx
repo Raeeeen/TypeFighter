@@ -37,6 +37,7 @@ export default function GameClient({
   const battleStatsRef = useRef({ time: 0, wpm: 0 });
   const [inputValue, setInputValue] = useState("");
   const [sentence, setSentence] = useState("Loading sentence...");
+  const isSentenceLoading = sentence === "Loading sentence...";
   const [inputError, setInputError] = useState(false);
   const [clock, setClock] = useState(0);
   const [startedAt, setStartedAt] = useState<number | null>(null);
@@ -323,6 +324,7 @@ export default function GameClient({
               <div className="mx-auto mt-6 max-w-xl">
                 <input
                   autoFocus
+                  disabled={isSentenceLoading}
                   autoCapitalize="off"
                   autoCorrect="off"
                   autoComplete="off"
@@ -394,13 +396,13 @@ export default function GameClient({
                     }
                   }}
                   type="text"
-                  placeholder="Start typing..."
+                  placeholder={isSentenceLoading ? "Please wait..." : "Start typing..."}
                   aria-invalid={inputError || hasMismatch}
                   className={`h-14 w-full border bg-[#0d1016] px-5 text-center text-lg font-bold text-white outline-none transition placeholder:text-white/15 ${
                     inputError || hasMismatch
                       ? "border-red-500/80 focus:border-red-500"
                       : "border-white/[0.1] focus:border-purple-400/60"
-                  }`}
+                  } disabled:cursor-wait disabled:opacity-50`}
                 />
               </div>
 
