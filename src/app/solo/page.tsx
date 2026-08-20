@@ -109,6 +109,7 @@ export default async function SoloPage() {
           {floors.map((floor) => {
             const unlocked = floor <= highestFloor + 1;
             const cleared = floor <= highestFloor;
+            const estimatedWpm = 50 + (floor - 1) * 30;
 
             /*
              * UNLOCKED FLOOR
@@ -155,6 +156,10 @@ export default async function SoloPage() {
                           </span>
                         )}
                       </p>
+
+                      <p className="mt-4 text-[9px] font-bold uppercase tracking-widest text-white/30">
+                        Est. WPM <span className="text-purple-400">{estimatedWpm}</span>
+                      </p>
                     </div>
                   </div>
                 </Link>
@@ -192,6 +197,10 @@ export default async function SoloPage() {
 
                     <p className="mt-2 text-[9px] font-bold uppercase tracking-widest text-white/20">
                       Locked
+                    </p>
+
+                    <p className="mt-4 text-[9px] font-bold uppercase tracking-widest text-white/20">
+                      Est. WPM {estimatedWpm}
                     </p>
                   </div>
                 </div>

@@ -8,9 +8,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === "discord" && user.id) {
+      const discordId =
+        account?.provider === "discord"
+          ? account.providerAccountId
+          : undefined;
+
+      if (discordId) {
         await createOrUpdateUser({
-          discordId: user.id,
+          discordId,
           username: user.name ?? "Unknown",
           displayName: user.name ?? "Unknown",
           avatar: user.image,
@@ -20,8 +25,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
 
-    async jwt({ token, user }) {
-      if (user?.id) {
+    async jwt({ token, user, account }) {
+      if (account?.provider === "discord" && account.providerAccountId) {
+        token.discordId = account.providerAccountId;
+      } else if (user?.id && !token.discordId) {
         token.discordId = user.id;
       }
 

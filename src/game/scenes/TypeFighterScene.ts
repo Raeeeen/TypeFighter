@@ -9,13 +9,17 @@ export default class TypeFighterScene extends Phaser.Scene {
   private playerHP = 100;
   private bossHP = 100;
 
-  private wordText!: Phaser.GameObjects.Text;
   private inputText!: Phaser.GameObjects.Text;
 
   private playerHPText!: Phaser.GameObjects.Text;
   private bossHPText!: Phaser.GameObjects.Text;
 
-  private currentWord = "warrior";
+  private currentSentence = "Loading sentence...";
+  private sentences: string[] = [];
+  private onSentenceChange?: (sentence: string) => void;
+  private onSceneReady?: (scene: TypeFighterScene) => void;
+  private onFloorCleared?: () => void;
+  private mistakeTriggeredForInput = false;
 
   private playerIdleTimer?: Phaser.Time.TimerEvent;
   private bossIdleTimer?: Phaser.Time.TimerEvent;
@@ -26,8 +30,17 @@ export default class TypeFighterScene extends Phaser.Scene {
     super("TypeFighterScene");
   }
 
-  init(data: { floor?: number }) {
+  init(data: {
+    floor?: number;
+    onSentenceChange?: (sentence: string) => void;
+    onSceneReady?: (scene: TypeFighterScene) => void;
+    onFloorCleared?: () => void;
+  }) {
     this.floor = data?.floor ?? 1;
+    this.playerHP = Math.max(10, 110 - this.floor * 10);
+    this.onSentenceChange = data?.onSentenceChange;
+    this.onSceneReady = data?.onSceneReady;
+    this.onFloorCleared = data?.onFloorCleared;
   }
 
   preload() {
@@ -66,10 +79,20 @@ export default class TypeFighterScene extends Phaser.Scene {
     // =========================
 
     this.load.audio("battle_music", "/assets/audio/battlemusic.mp3");
+
+    this.load.text("sentences", "/assets/sentence/sentences.txt");
   }
 
   create() {
     const { width, height } = this.scale;
+
+    this.sentences = this.cache.text
+      .get("sentences")
+      .split(/\r?\n/)
+      .map((sentence: string) => sentence.trim())
+      .filter((sentence: string) => sentence.length > 0);
+
+    this.chooseSentence();
 
     /*
      * BACKGROUND
@@ -159,7 +182,7 @@ export default class TypeFighterScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.playerHPText = this.add
-      .text(width * 0.25, height * 0.52, "HP 100", {
+      .text(width * 0.25, height * 0.52, `HP ${this.playerHP}`, {
         fontFamily: "Arial",
         fontSize: "16px",
         fontStyle: "bold",
@@ -170,23 +193,27 @@ export default class TypeFighterScene extends Phaser.Scene {
     // Word label and current word are intentionally not shown on the Phaser
     // canvas; input is handled via the DOM input in the React UI.
 
-    /*
-     * INPUT
-     */
-
     this.inputText = this.add
       .text(width / 2, height * 0.38, "", {
         fontFamily: "Arial",
         fontSize: "26px",
         color: "#a78bfa",
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setVisible(false);
 
-    /*
-     * KEYBOARD
-     */
+    this.onSceneReady?.(this);
+  }
 
-    this.input.keyboard?.on("keydown", this.handleKey, this);
+  private chooseSentence() {
+    if (this.sentences.length === 0) {
+      this.currentSentence = "The next battle begins now.";
+    } else {
+      const randomIndex = Math.floor(Math.random() * this.sentences.length);
+      this.currentSentence = this.sentences[randomIndex];
+    }
+
+    this.onSentenceChange?.(this.currentSentence);
   }
 
   /*
@@ -224,58 +251,64 @@ export default class TypeFighterScene extends Phaser.Scene {
     });
   }
 
-  /*
-   * KEYBOARD INPUT
-   */
+  /* CHECK SENTENCE */
 
-  private handleKey(event: KeyboardEvent) {
-    if (this.gameEnded) return;
-
-    if (event.key === "Backspace") {
-      this.inputText.text = this.inputText.text.slice(0, -1);
-
-      return;
-    }
-
-    if (event.key === "Enter") {
-      this.checkWord();
-      return;
-    }
-
-    if (event.key.length === 1) {
-      this.inputText.text += event.key;
-    }
-  }
-
-  /*
-   * CHECK WORD
-   */
-
-  private checkWord() {
-    const typed = this.inputText.text;
+  private checkWord(): boolean {
+    const rawTyped = this.inputText.text;
+    const typed = this.normalize(rawTyped);
+    const target = this.normalize(this.currentSentence);
 
     if (!typed) {
-      return;
+      return false;
     }
 
-    if (typed === this.currentWord) {
+    const isCorrect = typed === target;
+
+    if (isCorrect) {
       this.damageBoss();
-    } else {
+    } else if (!this.mistakeTriggeredForInput) {
       this.damagePlayer();
     }
 
-    this.inputText.text = "";
+    if (isCorrect) {
+      this.inputText.text = "";
+    }
+
+    return isCorrect;
+  }
+
+  private normalize(value: string): string {
+    return value
+      .trim()
+      .replace(/\s+/g, " ")
+      .replace(/[’‘]/g, "'")
+      .replace(/[“”]/g, '"');
   }
 
   // Expose methods for external input (DOM) to interact with the scene
   public setInputText(text: string) {
     if (this.inputText) {
       this.inputText.setText(text);
+
+      if (
+        !text ||
+        this.normalize(text) === this.normalize(this.currentSentence)
+      ) {
+        this.mistakeTriggeredForInput = false;
+      }
     }
   }
 
-  public submitInput() {
-    this.checkWord();
+  public handleTypingMistake() {
+    if (this.gameEnded || this.mistakeTriggeredForInput) return;
+
+    this.mistakeTriggeredForInput = true;
+    this.damagePlayer();
+  }
+
+  public submitInput(text: string): boolean {
+    this.setInputText(text);
+    return this.checkWord();
   }
 
   /*
@@ -307,6 +340,9 @@ export default class TypeFighterScene extends Phaser.Scene {
 
     this.bossHPText.setText(`HP ${this.bossHP}`);
 
+    this.mistakeTriggeredForInput = false;
+    this.chooseSentence();
+
     if (this.bossHP <= 0) {
       this.floorCleared();
     }
@@ -333,7 +369,7 @@ export default class TypeFighterScene extends Phaser.Scene {
       this.boss.setTexture("boss_idle1");
     });
 
-    this.playerHP -= 20;
+    this.playerHP -= 10;
 
     if (this.playerHP < 0) {
       this.playerHP = 0;
@@ -355,12 +391,11 @@ export default class TypeFighterScene extends Phaser.Scene {
 
     this.gameEnded = true;
 
-    this.input.keyboard?.removeListener("keydown", this.handleKey, this);
-
     this.playerIdleTimer?.remove();
     this.bossIdleTimer?.remove();
 
     this.sound.stopAll();
+    this.onFloorCleared?.();
 
     this.add.rectangle(
       this.scale.width / 2,
@@ -433,8 +468,6 @@ export default class TypeFighterScene extends Phaser.Scene {
 
     this.gameEnded = true;
 
-    this.input.keyboard?.removeListener("keydown", this.handleKey, this);
-
     this.playerIdleTimer?.remove();
     this.bossIdleTimer?.remove();
 
@@ -471,10 +504,51 @@ export default class TypeFighterScene extends Phaser.Scene {
       )
       .setOrigin(0.5);
 
+    const retryButton = this.add
+      .text(
+        this.scale.width / 2,
+        this.scale.height / 2 + 85,
+        "↻ RETRY",
+        {
+          fontFamily: "Arial",
+          fontSize: "16px",
+          fontStyle: "bold",
+          color: "#a78bfa",
+          backgroundColor: "#15121f",
+          padding: {
+            left: 20,
+            right: 20,
+            top: 12,
+            bottom: 12,
+          },
+        },
+      )
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+
+    retryButton.on("pointerdown", async () => {
+      try {
+        const response = await fetch("/api/profile/runs", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ floor: this.floor }),
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.success) return;
+      } catch {
+        return;
+      }
+
+      window.location.reload();
+    });
+
     const button = this.add
       .text(
         this.scale.width / 2,
-        this.scale.height / 2 + 90,
+        this.scale.height / 2 + 145,
         "← BACK TO FLOORS",
         {
           fontFamily: "Arial",

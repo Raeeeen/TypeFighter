@@ -95,8 +95,7 @@ export default function OnboardingPage() {
 
       router.push("/");
       router.refresh();
-    } catch (error) {
-      console.error(error);
+    } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
     }
