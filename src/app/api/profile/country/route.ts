@@ -62,9 +62,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
     });
-  } catch (error) {
-    console.error("Country save error:", error);
-
+  } catch {
     return NextResponse.json(
       {
         success: false,

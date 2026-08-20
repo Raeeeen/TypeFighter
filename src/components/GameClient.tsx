@@ -3,7 +3,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "flag-icons/css/flag-icons.min.css";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
@@ -22,16 +22,40 @@ type Props = {
   playerName?: string;
   country?: string | null;
   wpm?: number;
+  runs?: number;
 };
 
 export default function GameClient({
   floor,
   playerName = "PLAYER",
   country,
-  wpm = 0,
+  runs = 0,
 }: Props) {
   const sceneRef = useRef<any>(null);
+  const mismatchRef = useRef(false);
+  const previousInputRef = useRef("");
+  const battleStatsRef = useRef({ time: 0, wpm: 0 });
   const [inputValue, setInputValue] = useState("");
+  const [sentence, setSentence] = useState("Loading sentence...");
+  const [inputError, setInputError] = useState(false);
+  const [clock, setClock] = useState(0);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const runCount = runs;
+  const [metrics, setMetrics] = useState({
+    typedCharacters: 0,
+    correctCharacters: 0,
+  });
+  const handleSceneRef = useCallback((scene: any | null) => {
+    sceneRef.current = scene;
+  }, []);
+  const handleSentenceChange = useCallback((nextSentence: string) => {
+    setSentence(nextSentence);
+    setInputValue("");
+    setInputError(false);
+    mismatchRef.current = false;
+    previousInputRef.current = "";
+    sceneRef.current?.setInputText?.("");
+  }, []);
 
   // Resolve country to ISO alpha-2 code for flag-icons
   let countryCode: string | undefined;
@@ -57,6 +81,63 @@ export default function GameClient({
       }
     }
   }
+
+  const typedCharacters = Array.from(inputValue);
+  const sentenceCharacters = Array.from(sentence);
+  const hasMismatch = typedCharacters.some(
+    (character, index) => sentenceCharacters[index] !== character,
+  );
+  const accuracy = metrics.typedCharacters
+    ? Math.round(
+        (metrics.correctCharacters / metrics.typedCharacters) * 100,
+      )
+    : 100;
+
+  useEffect(() => {
+    if (!startedAt) return;
+
+    const timer = window.setInterval(() => setClock(Date.now()), 500);
+
+    return () => window.clearInterval(timer);
+  }, [startedAt]);
+
+  const liveWpm =
+    startedAt && clock && metrics.typedCharacters
+      ? Math.round(
+          metrics.typedCharacters /
+            5 /
+            ((clock - startedAt) / 60000),
+        )
+      : 0;
+  const elapsedSeconds = startedAt && clock
+    ? Math.max(0, Math.floor((clock - startedAt) / 1000))
+    : 0;
+  const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+  const elapsedRemainingSeconds = elapsedSeconds % 60;
+  const elapsedTime = `${String(elapsedMinutes).padStart(2, "0")}:${String(
+    elapsedRemainingSeconds,
+  ).padStart(2, "0")}`;
+
+  useEffect(() => {
+    battleStatsRef.current = {
+      time: elapsedSeconds,
+      wpm: liveWpm,
+    };
+  }, [elapsedSeconds, liveWpm]);
+
+  const handleFloorCleared = useCallback(() => {
+    void fetch("/api/game/result", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        floor,
+        time: battleStatsRef.current.time,
+        wpm: battleStatsRef.current.wpm,
+      }),
+    }).catch(() => {});
+  }, [floor]);
 
   return (
     <div className="min-h-screen bg-[#090b0f] text-white">
@@ -149,7 +230,7 @@ export default function GameClient({
                 </p>
 
                 <p className="mt-1 text-3xl font-black text-purple-400">
-                  {wpm}
+                  {liveWpm}
                 </p>
               </div>
 
@@ -160,7 +241,7 @@ export default function GameClient({
                 </p>
 
                 <p className="mt-1 text-3xl font-black">
-                  100%
+                  {accuracy}%
                 </p>
               </div>
 
@@ -171,7 +252,18 @@ export default function GameClient({
                 </p>
 
                 <p className="mt-1 text-3xl font-black">
-                  00:00
+                  {elapsedTime}
+                </p>
+              </div>
+
+              {/* RUNS */}
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-white/25">
+                  Runs
+                </p>
+
+                <p className="mt-1 text-3xl font-black">
+                  {runCount}
                 </p>
               </div>
 
@@ -188,41 +280,135 @@ export default function GameClient({
 
             {/* GAME — fixed, small box instead of fullscreen */}
             <div className="h-[300px] w-full overflow-hidden border border-white/[0.08] bg-black md:h-[380px]">
-              <PhaserGame floor={floor} setSceneRef={(s) => (sceneRef.current = s)} />
+              <PhaserGame
+                floor={floor}
+                setSceneRef={handleSceneRef}
+                onSentenceChange={handleSentenceChange}
+                onFloorCleared={handleFloorCleared}
+              />
             </div>
 
             {/* TYPING */}
             <section className="border border-white/[0.07] bg-white/[0.025] px-6 py-8">
 
               <p className="text-center text-[9px] font-bold uppercase tracking-[0.35em] text-purple-400">
-                Type This Word
+                Type This Sentence
               </p>
 
-              <h1 className="mt-3 text-center text-4xl font-black tracking-tight">
-                warrior
+              <h1 className="mt-3 whitespace-pre-wrap text-center text-2xl font-black leading-tight tracking-tight md:text-3xl">
+                {sentenceCharacters.map((character, index) => (
+                  <span
+                    key={`${index}-${character}`}
+                    className={
+                      index >= typedCharacters.length
+                        ? "text-white"
+                        : typedCharacters[index] === character
+                          ? "text-yellow-300"
+                          : "text-red-500"
+                    }
+                  >
+                    {character}
+                  </span>
+                ))}
+                {typedCharacters.slice(sentenceCharacters.length).map((character, index) => (
+                  <span
+                    key={`extra-${index}-${character}`}
+                    className="text-red-500"
+                  >
+                    {character}
+                  </span>
+                ))}
               </h1>
 
               <div className="mx-auto mt-6 max-w-xl">
                 <input
                   autoFocus
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  autoComplete="off"
+                  spellCheck={false}
                   value={inputValue}
                   onChange={(e) => {
-                    setInputValue(e.target.value);
-                    sceneRef.current?.setInputText?.(e.target.value);
+                    const nextValue = e.target.value;
+                    const previousCharacters = Array.from(previousInputRef.current);
+                    const nextCharacters = Array.from(nextValue);
+                    const nextMismatch = nextCharacters.some(
+                      (character, index) => sentenceCharacters[index] !== character,
+                    );
+                    let commonPrefixLength = 0;
+
+                    while (
+                      commonPrefixLength < previousCharacters.length &&
+                      commonPrefixLength < nextCharacters.length &&
+                      previousCharacters[commonPrefixLength] ===
+                        nextCharacters[commonPrefixLength]
+                    ) {
+                      commonPrefixLength += 1;
+                    }
+
+                    const addedCharacters = nextCharacters.slice(commonPrefixLength);
+                    const addedCorrectCharacters = addedCharacters.reduce(
+                      (count, character, index) =>
+                        count +
+                        (sentenceCharacters[commonPrefixLength + index] === character
+                          ? 1
+                          : 0),
+                      0,
+                    );
+
+                    setInputValue(nextValue);
+                    setInputError(nextMismatch);
+                    if (addedCharacters.length) {
+                      setMetrics((current) => ({
+                        typedCharacters: current.typedCharacters + addedCharacters.length,
+                        correctCharacters:
+                          current.correctCharacters + addedCorrectCharacters,
+                      }));
+                    }
+                    if (addedCharacters.length && !startedAt) {
+                      const now = Date.now();
+                      setStartedAt(now);
+                      setClock(now);
+                    }
+                    sceneRef.current?.setInputText?.(nextValue);
+
+                    if (nextMismatch && !mismatchRef.current) {
+                      sceneRef.current?.handleTypingMistake?.();
+                    }
+
+                    mismatchRef.current = nextMismatch;
+                    previousInputRef.current = nextValue;
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      sceneRef.current?.submitInput?.();
-                      setInputValue("");
-                      sceneRef.current?.setInputText?.("");
+                      const isCorrect = sceneRef.current?.submitInput?.(inputValue) === true;
+
+                      setInputError(!isCorrect);
+
+                      if (isCorrect) {
+                        setInputValue("");
+                        sceneRef.current?.setInputText?.("");
+                        mismatchRef.current = false;
+                      }
                     }
                   }}
                   type="text"
                   placeholder="Start typing..."
-                  className="h-14 w-full border border-white/[0.1] bg-[#0d1016] px-5 text-center text-lg font-bold text-white outline-none transition placeholder:text-white/15 focus:border-purple-400/60"
+                  aria-invalid={inputError || hasMismatch}
+                  className={`h-14 w-full border bg-[#0d1016] px-5 text-center text-lg font-bold text-white outline-none transition placeholder:text-white/15 ${
+                    inputError || hasMismatch
+                      ? "border-red-500/80 focus:border-red-500"
+                      : "border-white/[0.1] focus:border-purple-400/60"
+                  }`}
                 />
               </div>
+
+              {inputError && (
+                <p className="mt-3 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-red-500">
+                  Warning: input does not match the sentence
+                </p>
+              )}
 
               <p className="mt-3 text-center text-[9px] uppercase tracking-[0.25em] text-white/20">
                 Press Enter to attack

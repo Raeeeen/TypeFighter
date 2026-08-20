@@ -8,9 +8,16 @@ import TypeFighterScene from "@/game/scenes/TypeFighterScene";
 type Props = {
   floor: number;
   setSceneRef?: (scene: any | null) => void;
+  onSentenceChange?: (sentence: string) => void;
+  onFloorCleared?: () => void;
 };
 
-export default function PhaserGame({ floor, setSceneRef }: Props) {
+export default function PhaserGame({
+  floor,
+  setSceneRef,
+  onSentenceChange,
+  onFloorCleared,
+}: Props) {
   const gameRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,17 +44,18 @@ export default function PhaserGame({ floor, setSceneRef }: Props) {
 
     game.scene.start("TypeFighterScene", {
       floor,
+      onSentenceChange,
+      onFloorCleared,
+      onSceneReady: (scene: any) => {
+        setSceneRef?.(scene);
+      },
     });
-
-    // expose the scene instance to parent via callback
-    const sceneInstance = game.scene.getScene("TypeFighterScene");
-    setSceneRef?.(sceneInstance as any);
 
     return () => {
       setSceneRef?.(null);
       game.destroy(true);
     };
-  }, [floor]);
+  }, [floor, onFloorCleared, onSentenceChange, setSceneRef]);
 
   return <div ref={gameRef} className="h-full w-full" />;
 }

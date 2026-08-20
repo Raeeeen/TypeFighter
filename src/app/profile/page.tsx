@@ -18,6 +18,10 @@ export default async function ProfilePage() {
   }
 
   const countryCode = user.country?.toLowerCase();
+  const highestFloor = user.highestFloor ?? 0;
+  const highestFloorRuns =
+    user.floorRuns?.[String(highestFloor)] ?? 0;
+  const bestTime = formatBestTime(user.bestTime);
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#090b0f] text-white">
@@ -184,7 +188,7 @@ export default async function ProfilePage() {
                 </p>
 
                 <p className="mt-3 text-4xl font-black tracking-tight">
-                  {user.highestFloor ?? 0}
+                  {highestFloor}
                 </p>
 
                 <p className="mt-1 text-[10px] uppercase tracking-widest text-white/15">
@@ -202,21 +206,25 @@ export default async function ProfilePage() {
 
           <div className="border border-white/[0.06] bg-white/[0.02] p-5">
             <p className="text-[9px] font-bold uppercase tracking-widest text-white/20">
-              Games Played
+              Best Time
             </p>
 
             <p className="mt-2 text-2xl font-black">
-              0
+              {bestTime}
             </p>
           </div>
 
           <div className="border border-white/[0.06] bg-white/[0.02] p-5">
             <p className="text-[9px] font-bold uppercase tracking-widest text-white/20">
-              Best Time
+              Runs
             </p>
 
             <p className="mt-2 text-2xl font-black">
-              —
+              {highestFloorRuns}
+            </p>
+
+            <p className="mt-1 text-[10px] uppercase tracking-widest text-white/15">
+              Floor {highestFloor} attempts
             </p>
           </div>
 
@@ -249,4 +257,18 @@ function getCountryName(code?: string | null) {
   });
 
   return names.of(code.toUpperCase()) ?? code;
+}
+
+function formatBestTime(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return "—";
+  }
+
+  const minutes = Math.floor(value / 60);
+  const seconds = Math.floor(value % 60);
+
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+    2,
+    "0",
+  )}`;
 }
