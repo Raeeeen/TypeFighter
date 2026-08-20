@@ -13,6 +13,30 @@ export default async function Home() {
   const client = await clientPromise;
   const db = client.db("typefighter");
 
+  const [registeredPlayers, onlineResult] = await Promise.all([
+    db.collection("users").countDocuments(),
+    db.collection("users").aggregate<{ count: number }>([
+      {
+        $match: {
+          $expr: {
+            $gte: [
+              "$lastSeen",
+              {
+                $dateSubtract: {
+                  startDate: "$$NOW",
+                  unit: "second",
+                  amount: 90,
+                },
+              },
+            ],
+          },
+        },
+      },
+      { $count: "count" },
+    ]).toArray(),
+  ]);
+  const onlinePlayers = onlineResult[0]?.count ?? 0;
+
   const user = await db.collection("users").findOne({
     discordId: session.user?.id,
   });
@@ -116,26 +140,18 @@ export default async function Home() {
             {/* Game stats */}
             <div className="mt-10 flex gap-10 border-t border-white/[0.07] pt-6">
               <div>
-                <p className="text-2xl font-black">∞</p>
+                <p className="text-2xl font-black">{registeredPlayers}</p>
 
                 <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-white/25">
-                  Stages
+                  Registered Fighters
                 </p>
               </div>
 
               <div>
-                <p className="text-2xl font-black">1v1</p>
+                <p className="text-2xl font-black text-green-400">{onlinePlayers}</p>
 
                 <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-white/25">
-                  Typing Combat
-                </p>
-              </div>
-
-              <div>
-                <p className="text-2xl font-black">∞</p>
-
-                <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-white/25">
-                  Words
+                  Online Now
                 </p>
               </div>
             </div>

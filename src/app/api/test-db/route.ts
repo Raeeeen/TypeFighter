@@ -1,9 +1,6 @@
-import dns from "dns";
 import clientPromise from "@/lib/mongodb";
 
 export async function GET() {
-  console.log("DNS SERVERS:", dns.getServers());
-
   try {
     const client = await clientPromise;
 
@@ -14,8 +11,6 @@ export async function GET() {
       message: "MongoDB connected!",
     });
   } catch (error) {
-    console.error("MONGODB ERROR:", error);
-
     return Response.json(
       {
         success: false,
