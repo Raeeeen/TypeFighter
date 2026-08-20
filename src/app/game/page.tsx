@@ -18,6 +18,7 @@ export default async function GamePage({ searchParams }: Props) {
   let playerName: string | undefined = undefined;
   let country: string | null | undefined = undefined;
   let wpm = 0;
+  let runs = 0;
 
   if (session?.user?.id) {
     const client = await clientPromise;
@@ -30,13 +31,20 @@ export default async function GamePage({ searchParams }: Props) {
     playerName = user?.displayName ?? session.user.name ?? undefined;
     country = user?.country ?? null;
     wpm = user?.wpm ?? 0;
+    runs = user?.floorRuns?.[String(floor)] ?? 0;
   } else if (session?.user) {
     playerName = session.user.name ?? undefined;
   }
 
   return (
     <main className="min-h-screen bg-[#090b0f]">
-      <GameClient floor={floor} playerName={playerName} country={country} wpm={wpm} />
+      <GameClient
+        floor={floor}
+        playerName={playerName}
+        country={country}
+        wpm={wpm}
+        runs={runs}
+      />
     </main>
   );
 }
