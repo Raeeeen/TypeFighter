@@ -2,6 +2,8 @@ import Link from "next/link";
 import clientPromise from "@/lib/mongodb";
 import LeaderboardClient from "@/components/LeaderboardClient";
 
+export const dynamic = "force-dynamic";
+
 export type LeaderboardEntry = {
   rank: number;
   displayName: string;
