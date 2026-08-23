@@ -28,7 +28,7 @@ export default async function GamePage({ searchParams }: Props) {
       discordId: session.user.id,
     });
 
-    playerName = user?.displayName ?? session.user.name ?? undefined;
+    playerName = session.user.name ?? user?.displayName ?? undefined;
     country = user?.country ?? null;
     wpm = user?.wpm ?? 0;
     runs = user?.floorRuns?.[String(floor)] ?? 0;

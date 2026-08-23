@@ -7,6 +7,7 @@ import TypeFighterScene from "@/game/scenes/TypeFighterScene";
 
 type Props = {
   floor: number;
+  playerName: string;
   setSceneRef?: (scene: any | null) => void;
   onSentenceChange?: (sentence: string) => void;
   onFloorCleared?: () => void;
@@ -14,6 +15,7 @@ type Props = {
 
 export default function PhaserGame({
   floor,
+  playerName,
   setSceneRef,
   onSentenceChange,
   onFloorCleared,
@@ -44,6 +46,7 @@ export default function PhaserGame({
 
     game.scene.start("TypeFighterScene", {
       floor,
+      playerName,
       onSentenceChange,
       onFloorCleared,
       onSceneReady: (scene: any) => {
@@ -55,7 +58,7 @@ export default function PhaserGame({
       setSceneRef?.(null);
       game.destroy(true);
     };
-  }, [floor, onFloorCleared, onSentenceChange, setSceneRef]);
+  }, [floor, onFloorCleared, onSentenceChange, playerName, setSceneRef]);
 
   return <div ref={gameRef} className="h-full w-full" />;
 }
