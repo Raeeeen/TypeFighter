@@ -13,6 +13,7 @@ export default class TypeFighterScene extends Phaser.Scene {
 
   private playerHPText!: Phaser.GameObjects.Text;
   private bossHPText!: Phaser.GameObjects.Text;
+  private playerName = "PLAYER";
 
   private currentSentence = "Loading sentence...";
   private sentences: string[] = [];
@@ -32,11 +33,13 @@ export default class TypeFighterScene extends Phaser.Scene {
 
   init(data: {
     floor?: number;
+    playerName?: string;
     onSentenceChange?: (sentence: string) => void;
     onSceneReady?: (scene: TypeFighterScene) => void;
     onFloorCleared?: () => void;
   }) {
     this.floor = data?.floor ?? 1;
+    this.playerName = data?.playerName || "PLAYER";
     this.playerHP = Math.max(10, 110 - this.floor * 10);
     this.onSentenceChange = data?.onSentenceChange;
     this.onSceneReady = data?.onSceneReady;
@@ -173,7 +176,7 @@ export default class TypeFighterScene extends Phaser.Scene {
      */
 
     this.add
-      .text(width * 0.25, height * 0.48, "PLAYER", {
+      .text(width * 0.25, height * 0.48, this.playerName, {
         fontFamily: "Arial",
         fontSize: "14px",
         fontStyle: "bold",
@@ -251,7 +254,7 @@ export default class TypeFighterScene extends Phaser.Scene {
     });
   }
 
-  /* CHECK SENTENCE */
+  /* CHECK WORD */
 
   private checkWord(): boolean {
     const rawTyped = this.inputText.text;
@@ -300,7 +303,7 @@ export default class TypeFighterScene extends Phaser.Scene {
   }
 
   public handleTypingMistake() {
-    if (this.gameEnded || this.mistakeTriggeredForInput) return;
+    if (this.gameEnded) return;
 
     this.mistakeTriggeredForInput = true;
     this.damagePlayer();
@@ -332,7 +335,7 @@ export default class TypeFighterScene extends Phaser.Scene {
       this.player.setTexture("player_idle1");
     });
 
-    this.bossHP -= 20;
+    this.bossHP -= 10;
 
     if (this.bossHP < 0) {
       this.bossHP = 0;
