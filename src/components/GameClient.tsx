@@ -32,7 +32,6 @@ export default function GameClient({
   runs = 0,
 }: Props) {
   const sceneRef = useRef<any>(null);
-  const mismatchRef = useRef(false);
   const previousInputRef = useRef("");
   const battleStatsRef = useRef({ time: 0, wpm: 0 });
   const [inputValue, setInputValue] = useState("");
@@ -53,7 +52,6 @@ export default function GameClient({
     setSentence(nextSentence);
     setInputValue("");
     setInputError(false);
-    mismatchRef.current = false;
     previousInputRef.current = "";
     sceneRef.current?.setInputText?.("");
   }, []);
@@ -283,6 +281,7 @@ export default function GameClient({
             <div className="h-[300px] w-full overflow-hidden border border-white/[0.08] bg-black md:h-[380px]">
               <PhaserGame
                 floor={floor}
+                playerName={playerName}
                 setSceneRef={handleSceneRef}
                 onSentenceChange={handleSentenceChange}
                 onFloorCleared={handleFloorCleared}
@@ -324,7 +323,7 @@ export default function GameClient({
               <div className="mx-auto mt-6 max-w-xl">
                 <input
                   autoFocus
-                  disabled={isSentenceLoading}
+                    disabled={isSentenceLoading}
                   autoCapitalize="off"
                   autoCorrect="off"
                   autoComplete="off"
@@ -357,6 +356,8 @@ export default function GameClient({
                           : 0),
                       0,
                     );
+                    const addedIncorrectCharacters =
+                      addedCharacters.length - addedCorrectCharacters;
 
                     setInputValue(nextValue);
                     setInputError(nextMismatch);
@@ -374,11 +375,10 @@ export default function GameClient({
                     }
                     sceneRef.current?.setInputText?.(nextValue);
 
-                    if (nextMismatch && !mismatchRef.current) {
+                    for (let index = 0; index < addedIncorrectCharacters; index += 1) {
                       sceneRef.current?.handleTypingMistake?.();
                     }
 
-                    mismatchRef.current = nextMismatch;
                     previousInputRef.current = nextValue;
                   }}
                   onKeyDown={(e) => {
@@ -391,7 +391,6 @@ export default function GameClient({
                       if (isCorrect) {
                         setInputValue("");
                         sceneRef.current?.setInputText?.("");
-                        mismatchRef.current = false;
                       }
                     }
                   }}
