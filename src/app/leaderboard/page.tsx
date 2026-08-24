@@ -1,8 +1,14 @@
 import Link from "next/link";
 import clientPromise from "@/lib/mongodb";
 import LeaderboardClient from "@/components/LeaderboardClient";
+import { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Leaderboard",
+  description: "See the fastest typists in TypeFighter, ranked by WPM and floors cleared.",
+};
 
 export type LeaderboardEntry = {
   rank: number;

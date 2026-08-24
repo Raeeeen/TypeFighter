@@ -10,12 +10,9 @@ import enLocale from "i18n-iso-countries/langs/en.json";
 
 countries.registerLocale(enLocale);
 
-const PhaserGame = dynamic(
-  () => import("@/components/PhaserGame"),
-  {
-    ssr: false,
-  }
-);
+const PhaserGame = dynamic(() => import("@/components/PhaserGame"), {
+  ssr: false,
+});
 
 type Props = {
   floor: number;
@@ -55,8 +52,7 @@ export default function GameClient({
     previousInputRef.current = "";
     sceneRef.current?.setInputText?.("");
   }, []);
-
-  // Resolve country to ISO alpha-2 code for flag-icons
+  const [volume, setVolume] = useState(0.35);
   let countryCode: string | undefined;
   let displayCountry: string | undefined | null = country;
 
@@ -65,17 +61,14 @@ export default function GameClient({
 
     if (trimmed.length === 2) {
       countryCode = trimmed.toLowerCase();
-      // convert code back to full name for display if possible
       const name = countries.getName(trimmed.toUpperCase(), "en");
       if (name) displayCountry = name;
     } else {
-      // try to map full country name to alpha-2
       const code = countries.getAlpha2Code(trimmed, "en");
       if (code) {
         countryCode = code.toLowerCase();
         displayCountry = countries.getName(code, "en") || trimmed;
       } else {
-        // fallback: show raw value
         displayCountry = trimmed;
       }
     }
@@ -87,9 +80,7 @@ export default function GameClient({
     (character, index) => sentenceCharacters[index] !== character,
   );
   const accuracy = metrics.typedCharacters
-    ? Math.round(
-        (metrics.correctCharacters / metrics.typedCharacters) * 100,
-      )
+    ? Math.round((metrics.correctCharacters / metrics.typedCharacters) * 100)
     : 100;
 
   useEffect(() => {
@@ -102,15 +93,12 @@ export default function GameClient({
 
   const liveWpm =
     startedAt && clock && metrics.typedCharacters
-      ? Math.round(
-          metrics.typedCharacters /
-            5 /
-            ((clock - startedAt) / 60000),
-        )
+      ? Math.round(metrics.typedCharacters / 5 / ((clock - startedAt) / 60000))
       : 0;
-  const elapsedSeconds = startedAt && clock
-    ? Math.max(0, Math.floor((clock - startedAt) / 1000))
-    : 0;
+  const elapsedSeconds =
+    startedAt && clock
+      ? Math.max(0, Math.floor((clock - startedAt) / 1000))
+      : 0;
   const elapsedMinutes = Math.floor(elapsedSeconds / 60);
   const elapsedRemainingSeconds = elapsedSeconds % 60;
   const elapsedTime = `${String(elapsedMinutes).padStart(2, "0")}:${String(
@@ -140,7 +128,6 @@ export default function GameClient({
 
   return (
     <div className="min-h-screen bg-[#090b0f] text-white">
-
       {/* HEADER */}
       <header className="flex h-16 items-center justify-between border-b border-white/[0.06] px-6">
         <div className="text-lg font-black tracking-tight">
@@ -159,30 +146,20 @@ export default function GameClient({
 
       {/* GAME CONTENT */}
       <main className="mx-auto max-w-7xl px-4 py-6 md:px-8">
-
         <div className="grid gap-4 lg:grid-cols-[220px_1fr] lg:items-start">
-
-          {/* ========================= */}
-          {/* LEFT — STATS (doesn't stretch to match right column) */}
-          {/* ========================= */}
-
           <aside className="self-start border border-white/[0.07] bg-white/[0.025] p-5">
-
             <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-purple-400">
               Battle Stats
             </p>
 
             <div className="mt-6 space-y-6">
-
               {/* PLAYER */}
               <div>
                 <p className="text-[9px] font-bold uppercase tracking-widest text-white/25">
                   Player
                 </p>
 
-                <p className="mt-1 truncate text-lg font-black">
-                  {playerName}
-                </p>
+                <p className="mt-1 truncate text-lg font-black">{playerName}</p>
               </div>
 
               {/* COUNTRY */}
@@ -239,9 +216,7 @@ export default function GameClient({
                   Accuracy
                 </p>
 
-                <p className="mt-1 text-3xl font-black">
-                  {accuracy}%
-                </p>
+                <p className="mt-1 text-3xl font-black">{accuracy}%</p>
               </div>
 
               {/* TIME */}
@@ -250,9 +225,7 @@ export default function GameClient({
                   Time
                 </p>
 
-                <p className="mt-1 text-3xl font-black">
-                  {elapsedTime}
-                </p>
+                <p className="mt-1 text-3xl font-black">{elapsedTime}</p>
               </div>
 
               {/* RUNS */}
@@ -261,22 +234,39 @@ export default function GameClient({
                   Runs
                 </p>
 
-                <p className="mt-1 text-3xl font-black">
-                  {runCount}
-                </p>
+                <p className="mt-1 text-3xl font-black">{runCount}</p>
               </div>
 
-            </div>
+              {/* VOLUME */}
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-white/25">
+                  Volume
+                </p>
 
+                <div className="mt-2 flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={volume}
+                    onChange={(e) => {
+                      const nextVolume = Number(e.target.value);
+                      setVolume(nextVolume);
+                      sceneRef.current?.setMusicVolume?.(nextVolume);
+                    }}
+                    className="h-1 w-full cursor-pointer appearance-none bg-white/10 accent-purple-400"
+                  />
+
+                  <span className="w-8 shrink-0 text-right text-xs font-bold text-white/40">
+                    {Math.round(volume * 100)}
+                  </span>
+                </div>
+              </div>
+            </div>
           </aside>
 
-
-          {/* ========================= */}
-          {/* RIGHT — GAME + TYPING (taller than the stats column) */}
-          {/* ========================= */}
-
           <div className="flex min-w-0 flex-col gap-4">
-
             {/* GAME — fixed, small box instead of fullscreen */}
             <div className="h-[300px] w-full overflow-hidden border border-white/[0.08] bg-black md:h-[380px]">
               <PhaserGame
@@ -290,7 +280,6 @@ export default function GameClient({
 
             {/* TYPING */}
             <section className="border border-white/[0.07] bg-white/[0.025] px-6 py-8">
-
               <p className="text-center text-[9px] font-bold uppercase tracking-[0.35em] text-purple-400">
                 Type This Sentence
               </p>
@@ -310,20 +299,22 @@ export default function GameClient({
                     {character}
                   </span>
                 ))}
-                {typedCharacters.slice(sentenceCharacters.length).map((character, index) => (
-                  <span
-                    key={`extra-${index}-${character}`}
-                    className="text-red-500"
-                  >
-                    {character}
-                  </span>
-                ))}
+                {typedCharacters
+                  .slice(sentenceCharacters.length)
+                  .map((character, index) => (
+                    <span
+                      key={`extra-${index}-${character}`}
+                      className="text-red-500"
+                    >
+                      {character}
+                    </span>
+                  ))}
               </h1>
 
               <div className="mx-auto mt-6 max-w-xl">
                 <input
                   autoFocus
-                    disabled={isSentenceLoading}
+                  disabled={isSentenceLoading}
                   autoCapitalize="off"
                   autoCorrect="off"
                   autoComplete="off"
@@ -331,10 +322,13 @@ export default function GameClient({
                   value={inputValue}
                   onChange={(e) => {
                     const nextValue = e.target.value;
-                    const previousCharacters = Array.from(previousInputRef.current);
+                    const previousCharacters = Array.from(
+                      previousInputRef.current,
+                    );
                     const nextCharacters = Array.from(nextValue);
                     const nextMismatch = nextCharacters.some(
-                      (character, index) => sentenceCharacters[index] !== character,
+                      (character, index) =>
+                        sentenceCharacters[index] !== character,
                     );
                     let commonPrefixLength = 0;
 
@@ -347,11 +341,13 @@ export default function GameClient({
                       commonPrefixLength += 1;
                     }
 
-                    const addedCharacters = nextCharacters.slice(commonPrefixLength);
+                    const addedCharacters =
+                      nextCharacters.slice(commonPrefixLength);
                     const addedCorrectCharacters = addedCharacters.reduce(
                       (count, character, index) =>
                         count +
-                        (sentenceCharacters[commonPrefixLength + index] === character
+                        (sentenceCharacters[commonPrefixLength + index] ===
+                        character
                           ? 1
                           : 0),
                       0,
@@ -363,7 +359,8 @@ export default function GameClient({
                     setInputError(nextMismatch);
                     if (addedCharacters.length) {
                       setMetrics((current) => ({
-                        typedCharacters: current.typedCharacters + addedCharacters.length,
+                        typedCharacters:
+                          current.typedCharacters + addedCharacters.length,
                         correctCharacters:
                           current.correctCharacters + addedCorrectCharacters,
                       }));
@@ -375,7 +372,11 @@ export default function GameClient({
                     }
                     sceneRef.current?.setInputText?.(nextValue);
 
-                    for (let index = 0; index < addedIncorrectCharacters; index += 1) {
+                    for (
+                      let index = 0;
+                      index < addedIncorrectCharacters;
+                      index += 1
+                    ) {
                       sceneRef.current?.handleTypingMistake?.();
                     }
 
@@ -384,7 +385,8 @@ export default function GameClient({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      const isCorrect = sceneRef.current?.submitInput?.(inputValue) === true;
+                      const isCorrect =
+                        sceneRef.current?.submitInput?.(inputValue) === true;
 
                       setInputError(!isCorrect);
 
@@ -395,7 +397,9 @@ export default function GameClient({
                     }
                   }}
                   type="text"
-                  placeholder={isSentenceLoading ? "Please wait..." : "Start typing..."}
+                  placeholder={
+                    isSentenceLoading ? "Please wait..." : "Start typing..."
+                  }
                   aria-invalid={inputError || hasMismatch}
                   className={`h-14 w-full border bg-[#0d1016] px-5 text-center text-lg font-bold text-white outline-none transition placeholder:text-white/15 ${
                     inputError || hasMismatch
@@ -414,15 +418,10 @@ export default function GameClient({
               <p className="mt-3 text-center text-[9px] uppercase tracking-[0.25em] text-white/20">
                 Press Enter to attack
               </p>
-
             </section>
-
           </div>
-
         </div>
-
       </main>
-
     </div>
   );
 }

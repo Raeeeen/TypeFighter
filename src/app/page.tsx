@@ -2,6 +2,13 @@ import Link from "next/link";
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import clientPromise from "@/lib/mongodb";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "TypeFighter — Typing Battle Game",
+  description:
+    "Battle bosses across 10 floors by typing sentences fast and accurately. Free browser-based typing game with leaderboards.",
+};
 
 export default async function Home() {
   const session = await auth();
@@ -84,7 +91,6 @@ export default async function Home() {
             </p>
           </div>
 
-          {/* Avatar */}
           {session?.user?.image ? (
             <img
               src={session.user.image}
@@ -118,7 +124,6 @@ export default async function Home() {
       {/* Main */}
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center px-6 py-12">
         <div className="grid w-full gap-16 lg:grid-cols-[1fr_420px] lg:items-center">
-          {/* Left */}
           <section>
             <p className="mb-5 text-xs font-bold uppercase tracking-[0.4em] text-purple-400">
               Welcome back, fighter
@@ -263,3 +268,4 @@ export default async function Home() {
     </main>
   );
 }
+

@@ -1,12 +1,23 @@
 import GameClient from "../../components/GameClient";
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
+import { Metadata } from "next";
 
 type Props = {
   searchParams: Promise<{
     floor?: string;
   }>;
 };
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const params = await searchParams;
+  const floor = Math.max(1, Number(params.floor ?? 1));
+
+  return {
+    title: `Floor ${floor}`,
+    description: `Battle the Floor ${floor} boss by typing sentences fast and accurately.`,
+  };
+}
 
 export default async function GamePage({ searchParams }: Props) {
   const params = await searchParams;
