@@ -5,6 +5,15 @@ import { useRouter } from "next/navigation";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 import "flag-icons/css/flag-icons.min.css";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Onboarding",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 countries.registerLocale(enLocale);
 
@@ -34,7 +43,6 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -196,7 +204,6 @@ export default function OnboardingPage() {
 
                 </div>
 
-                {/* Arrow */}
                 <span
                   className={`text-xs text-white/30 transition-transform ${
                     open ? "rotate-180" : ""
@@ -330,7 +337,6 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Error */}
             {error && (
               <p className="mt-3 text-xs font-bold text-red-400">
                 {error}

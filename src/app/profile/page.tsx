@@ -3,6 +3,15 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getUserByDiscordId } from "@/lib/users";
 import "flag-icons/css/flag-icons.min.css";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Profile",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -79,7 +88,6 @@ export default async function ProfilePage() {
           <div className="border-b border-white/[0.07] p-6 md:p-8">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
 
-              {/* Avatar */}
               {user.avatar ? (
                 <img
                   src={user.avatar}
@@ -92,7 +100,6 @@ export default async function ProfilePage() {
                 </div>
               )}
 
-              {/* Name */}
               <div className="flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/25">
                   Fighter
@@ -201,7 +208,7 @@ export default async function ProfilePage() {
 
         </section>
 
-        {/* Future stats */}
+        {/* User stats */}
         <div className="mt-6 grid gap-2 sm:grid-cols-3">
 
           <div className="border border-white/[0.06] bg-white/[0.02] p-5">

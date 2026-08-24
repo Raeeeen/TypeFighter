@@ -2,6 +2,13 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import clientPromise from "@/lib/mongodb";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Solo Campaign",
+  description:
+    "Select a floor and battle typing bosses solo. Progress saves automatically.",
+};
 
 export default async function SoloPage() {
   const session = await auth();
@@ -111,9 +118,6 @@ export default async function SoloPage() {
             const cleared = floor <= highestFloor;
             const estimatedWpm = 50 + (floor - 1) * 30;
 
-            /*
-             * UNLOCKED FLOOR
-             */
             if (unlocked) {
               return (
                 <Link
@@ -121,14 +125,11 @@ export default async function SoloPage() {
                   href={`/game?floor=${floor}`}
                   className="group relative aspect-square overflow-hidden border border-purple-400/30 bg-purple-500/[0.07] p-6 transition duration-200 hover:border-purple-400/80 hover:bg-purple-500/[0.14]"
                 >
-                  {/* Right accent */}
                   <div className="absolute right-0 top-0 h-full w-1 bg-purple-400 opacity-0 transition group-hover:opacity-100" />
 
-                  {/* Bottom hover line */}
                   <div className="absolute bottom-0 left-0 h-1 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full" />
 
                   <div className="flex h-full flex-col justify-between">
-                    {/* Top */}
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/25">
                         Floor
@@ -139,7 +140,6 @@ export default async function SoloPage() {
                       </span>
                     </div>
 
-                    {/* Number */}
                     <div>
                       <p className="text-6xl font-black tracking-[-0.05em] transition group-hover:text-purple-400">
                         {String(floor).padStart(2, "0")}
@@ -147,18 +147,15 @@ export default async function SoloPage() {
 
                       <p className="mt-2 text-[9px] font-bold uppercase tracking-widest">
                         {cleared ? (
-                          <span className="text-purple-400/70">
-                            Cleared
-                          </span>
+                          <span className="text-purple-400/70">Cleared</span>
                         ) : (
-                          <span className="text-white/25">
-                            Ready
-                          </span>
+                          <span className="text-white/25">Ready</span>
                         )}
                       </p>
 
                       <p className="mt-4 text-[9px] font-bold uppercase tracking-widest text-white/30">
-                        Est. WPM <span className="text-purple-400">{estimatedWpm}</span>
+                        Est. WPM{" "}
+                        <span className="text-purple-400">{estimatedWpm}</span>
                       </p>
                     </div>
                   </div>
@@ -166,30 +163,19 @@ export default async function SoloPage() {
               );
             }
 
-            /*
-             * LOCKED FLOOR
-             *
-             * This is intentionally NOT a Link.
-             * Server Components cannot have onClick handlers.
-             */
             return (
               <div
                 key={floor}
                 className="relative aspect-square cursor-not-allowed border border-white/[0.05] bg-white/[0.02] p-6 opacity-35"
               >
                 <div className="flex h-full flex-col justify-between">
-                  {/* Top */}
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20">
                       Floor
                     </span>
 
-                    <span className="text-lg text-white/20">
-                      🔒
-                    </span>
+                    <span className="text-lg text-white/20">🔒</span>
                   </div>
-
-                  {/* Number */}
                   <div>
                     <p className="text-6xl font-black tracking-[-0.05em] text-white/20">
                       {String(floor).padStart(2, "0")}

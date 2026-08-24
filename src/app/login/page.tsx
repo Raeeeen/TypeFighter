@@ -1,4 +1,10 @@
 import { signIn } from "@/auth";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Login",
+  description: "Sign in to TypeFighter with Discord to save your progress and compete on the leaderboard.",
+};
 
 export default function LoginPage() {
   return (
@@ -37,7 +43,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Login card */}
           <div className="border border-white/10 bg-[#111419]/95 p-8 shadow-2xl backdrop-blur-xl">
             <div className="mb-8">
               <p className="text-xs font-bold uppercase tracking-[0.25em] text-purple-400">
