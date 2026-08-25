@@ -5,15 +5,6 @@ import { useRouter } from "next/navigation";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 import "flag-icons/css/flag-icons.min.css";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Onboarding",
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
 
 countries.registerLocale(enLocale);
 
