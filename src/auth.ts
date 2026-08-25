@@ -4,6 +4,7 @@ import Discord from "next-auth/providers/discord";
 import { createOrUpdateUser } from "@/lib/users";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   providers: [Discord],
 
   callbacks: {
