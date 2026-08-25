@@ -2,8 +2,8 @@ import { signIn } from "@/auth";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Login",
-  description: "Sign in to TypeFighter with Discord to save your progress and compete on the leaderboard.",
+  title: "TypeFighter — Typing Battle Game",
+  description: "Battle bosses across 10 floors by typing sentences fast and accurately. Free browser-based typing game with leaderboards.",
 };
 
 export default function LoginPage() {
