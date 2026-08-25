@@ -9,6 +9,19 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <main className="min-h-screen bg-[#0b0d10] text-white overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "TypeFighter",
+            alternateName: "typefighter.onrender.com",
+            url: "https://typefighter.onrender.com",
+          }),
+        }}
+      />
+
       {/* Background */}
       <div className="fixed inset-0 pointer-events-none">
         <div
