@@ -33,7 +33,7 @@ export default async function SoloPage() {
   const floors = Array.from({ length: 10 }, (_, index) => index + 1);
 
   return (
-    <main className="min-h-screen bg-[#090b0f] text-white">
+    <main className="min-h-screen overflow-hidden bg-[#090b0f] text-white">
       {/* Background */}
       <div className="pointer-events-none fixed inset-0">
         <div
