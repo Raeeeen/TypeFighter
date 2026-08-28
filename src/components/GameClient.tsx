@@ -267,8 +267,7 @@ export default function GameClient({
           </aside>
 
           <div className="flex min-w-0 flex-col gap-4">
-            {/* GAME — fixed, small box instead of fullscreen */}
-            <div className="h-[300px] w-full overflow-hidden border border-white/[0.08] bg-black md:h-[380px]">
+            <div className="mx-auto aspect-video w-full max-w-2xl overflow-hidden border border-white/[0.08] bg-black">
               <PhaserGame
                 floor={floor}
                 playerName={playerName}
@@ -277,8 +276,6 @@ export default function GameClient({
                 onFloorCleared={handleFloorCleared}
               />
             </div>
-
-            {/* TYPING */}
             <section className="border border-white/[0.07] bg-white/[0.025] px-6 py-8">
               <p className="text-center text-[9px] font-bold uppercase tracking-[0.35em] text-purple-400">
                 Type This Sentence

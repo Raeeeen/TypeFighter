@@ -22,25 +22,28 @@ export default async function Home() {
 
   const [registeredPlayers, onlineResult] = await Promise.all([
     db.collection("users").countDocuments(),
-    db.collection("users").aggregate<{ count: number }>([
-      {
-        $match: {
-          $expr: {
-            $gte: [
-              "$lastSeen",
-              {
-                $dateSubtract: {
-                  startDate: "$$NOW",
-                  unit: "second",
-                  amount: 90,
+    db
+      .collection("users")
+      .aggregate<{ count: number }>([
+        {
+          $match: {
+            $expr: {
+              $gte: [
+                "$lastSeen",
+                {
+                  $dateSubtract: {
+                    startDate: "$$NOW",
+                    unit: "second",
+                    amount: 90,
+                  },
                 },
-              },
-            ],
+              ],
+            },
           },
         },
-      },
-      { $count: "count" },
-    ]).toArray(),
+        { $count: "count" },
+      ])
+      .toArray(),
   ]);
   const onlinePlayers = onlineResult[0]?.count ?? 0;
 
@@ -153,7 +156,9 @@ export default async function Home() {
               </div>
 
               <div>
-                <p className="text-2xl font-black text-green-400">{onlinePlayers}</p>
+                <p className="text-2xl font-black text-green-400">
+                  {onlinePlayers}
+                </p>
 
                 <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-white/25">
                   Online Now
@@ -192,27 +197,28 @@ export default async function Home() {
               </Link>
 
               {/* MULTIPLAYER */}
-              <div className="relative border border-white/[0.07] bg-white/[0.025] p-6 opacity-60">
+              <Link
+                href="/multiplayer"
+                className="group relative block overflow-hidden border border-purple-400/30 bg-purple-500/[0.08] p-6 transition duration-200 hover:border-purple-400/70 hover:bg-purple-500/[0.14]"
+              >
+                <div className="absolute right-0 top-0 h-full w-1 bg-purple-400 opacity-0 transition group-hover:opacity-100" />
+
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-3">
-                      <p className="text-2xl font-black tracking-tight">
-                        MULTIPLAYER
-                      </p>
+                    <p className="text-2xl font-black tracking-tight">
+                      MULTIPLAYER
+                    </p>
 
-                      <span className="border border-yellow-400/20 bg-yellow-400/[0.08] px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-yellow-400/70">
-                        In Development
-                      </span>
-                    </div>
-
-                    <p className="mt-1 text-xs text-white/25">
+                    <p className="mt-1 text-xs text-white/30">
                       Compete against other fighters
                     </p>
                   </div>
 
-                  <span className="text-2xl text-white/20">→</span>
+                  <span className="text-3xl font-light text-purple-400 transition group-hover:translate-x-1">
+                    →
+                  </span>
                 </div>
-              </div>
+              </Link>
 
               {/* LEADERBOARDS */}
               <Link
@@ -268,4 +274,3 @@ export default async function Home() {
     </main>
   );
 }
-

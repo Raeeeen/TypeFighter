@@ -1,15 +1,16 @@
 import GameClient from "../../components/GameClient";
 import { auth } from "@/auth";
+import MultiplayerGameClient from "@/components/MultiplayerGameClient";
 import clientPromise from "@/lib/mongodb";
 import { Metadata } from "next";
 
 type Props = {
-  searchParams: Promise<{
-    floor?: string;
-  }>;
+  searchParams: Promise<{ floor?: string; mode?: string; room?: string }>;
 };
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
   const params = await searchParams;
   const floor = Math.max(1, Number(params.floor ?? 1));
 
@@ -25,6 +26,15 @@ export default async function GamePage({ searchParams }: Props) {
   const floor = Math.max(1, Number(params.floor ?? 1));
 
   const session = await auth();
+
+  if (params.mode === "multiplayer" && params.room) {
+    const playerName = session?.user?.name ?? "PLAYER";
+    return (
+      <main className="min-h-screen bg-[#090b0f]">
+        <MultiplayerGameClient roomCode={params.room} playerName={playerName} />
+      </main>
+    );
+  }
 
   let playerName: string | undefined = undefined;
   let country: string | null | undefined = undefined;

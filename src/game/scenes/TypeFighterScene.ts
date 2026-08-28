@@ -42,6 +42,19 @@ export default class TypeFighterScene extends Phaser.Scene {
 
   private currentMusic?: Phaser.Sound.BaseSound;
 
+  private mode: "solo" | "multiplayer" = "solo";
+  private spectator = false;
+  private matchStartTime = 0;
+  private onCorrectHit?: () => void;
+  private onMistake?: () => void;
+  private onVictory?: (stats: {
+    wpm: number;
+    accuracy: number;
+    time: number;
+  }) => void;
+  private onDefeat?: () => void;
+  private muted = false;
+
   constructor() {
     super("TypeFighterScene");
   }
@@ -49,16 +62,37 @@ export default class TypeFighterScene extends Phaser.Scene {
   init(data: {
     floor?: number;
     playerName?: string;
+    mode?: "solo" | "multiplayer";
+    spectator?: boolean;
+    muted?: boolean;
     onSentenceChange?: (sentence: string) => void;
     onSceneReady?: (scene: TypeFighterScene) => void;
     onFloorCleared?: () => void;
+    onCorrectHit?: () => void;
+    onMistake?: () => void;
+    onVictory?: (stats: {
+      wpm: number;
+      accuracy: number;
+      time: number;
+    }) => void;
+    onDefeat?: () => void;
   }) {
     this.floor = Phaser.Math.Clamp(data?.floor ?? 1, 1, 10);
     this.playerName = data?.playerName || "PLAYER";
-    this.playerHP = Math.max(10, 110 - this.floor * 10);
+    this.mode = data?.mode ?? "solo";
+    this.spectator = data?.spectator ?? false;
+
+    this.playerHP =
+      this.mode === "multiplayer" ? 100 : Math.max(10, 110 - this.floor * 10);
+
     this.onSentenceChange = data?.onSentenceChange;
     this.onSceneReady = data?.onSceneReady;
     this.onFloorCleared = data?.onFloorCleared;
+    this.onCorrectHit = data?.onCorrectHit;
+    this.onMistake = data?.onMistake;
+    this.onVictory = data?.onVictory;
+    this.onDefeat = data?.onDefeat;
+    this.muted = data?.muted ?? false;
   }
 
   preload() {
@@ -194,11 +228,13 @@ export default class TypeFighterScene extends Phaser.Scene {
      * MUSIC
      */
 
-    this.currentMusic = this.sound.add(`battle_music_${this.floor}`, {
-      loop: true,
-      volume: 0.35,
-    });
-    this.currentMusic.play();
+    if (!this.muted) {
+      this.currentMusic = this.sound.add(`battle_music_${this.floor}`, {
+        loop: true,
+        volume: 0.35,
+      });
+      this.currentMusic.play();
+    }
 
     this.groundY = height * 0.8;
 
@@ -266,14 +302,16 @@ export default class TypeFighterScene extends Phaser.Scene {
      * FLOOR
      */
 
-    this.add
-      .text(width / 2, 35, `FLOOR ${this.floor}`, {
-        fontFamily: "Arial",
-        fontSize: "26px",
-        fontStyle: "bold",
-        color: "#ffffff",
-      })
-      .setOrigin(0.5);
+    if (this.mode !== "multiplayer") {
+      this.add
+        .text(width / 2, 35, `FLOOR ${this.floor}`, {
+          fontFamily: "Arial",
+          fontSize: "26px",
+          fontStyle: "bold",
+          color: "#ffffff",
+        })
+        .setOrigin(0.5);
+    }
 
     /*
      * BOSS HUD
@@ -340,6 +378,7 @@ export default class TypeFighterScene extends Phaser.Scene {
       .setVisible(false);
 
     this.onSceneReady?.(this);
+    this.matchStartTime = this.time.now;
   }
 
   update() {
@@ -350,6 +389,14 @@ export default class TypeFighterScene extends Phaser.Scene {
     if (this.player && this.playerNameText && this.playerHPText) {
       this.updatePlayerHudPosition();
     }
+  }
+
+  public remoteCorrectHit() {
+    if (this.spectator) this.damageBoss();
+  }
+
+  public remoteMistake() {
+    if (this.spectator) this.damagePlayer();
   }
 
   private groundLineY(visualBottomPixel: number, scale: number): number {
@@ -735,8 +782,14 @@ export default class TypeFighterScene extends Phaser.Scene {
     this.mistakeTriggeredForInput = false;
     this.chooseSentence();
 
+    if (!this.spectator) this.onCorrectHit?.();
+
     if (this.bossHP <= 0) {
-      this.floorCleared();
+      if (this.mode === "multiplayer") {
+        this.multiplayerVictory();
+      } else {
+        this.floorCleared();
+      }
     }
   }
 
@@ -789,6 +842,8 @@ export default class TypeFighterScene extends Phaser.Scene {
       this.playerHP = Math.max(0, this.playerHP - 10);
       this.playerHPText.setText(`HP ${this.playerHP}`);
 
+      if (!this.spectator) this.onMistake?.();
+
       this.player.play("player_hurt");
       this.player.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
         if (!this.player || this.gameEnded) return;
@@ -796,7 +851,11 @@ export default class TypeFighterScene extends Phaser.Scene {
       });
 
       if (this.playerHP <= 0) {
-        this.gameOver();
+        if (this.mode === "multiplayer") {
+          this.multiplayerDefeat();
+        } else {
+          this.gameOver();
+        }
         return;
       }
     });
@@ -889,6 +948,72 @@ export default class TypeFighterScene extends Phaser.Scene {
     button.on("pointerdown", () => {
       window.location.href = "/solo";
     });
+  }
+
+  /*
+   * MULTIPLAYER VICTORY
+   */
+
+  private multiplayerVictory() {
+    if (this.gameEnded) return;
+    this.gameEnded = true;
+    this.bossRangedEffect?.setVisible(false);
+    this.sound.stopAll();
+
+    this.add.rectangle(
+      this.scale.width / 2,
+      this.scale.height / 2,
+      this.scale.width,
+      this.scale.height,
+      0x000000,
+      0.7,
+    );
+    this.add
+      .text(this.scale.width / 2, this.scale.height / 2, "VICTORY", {
+        fontFamily: "Arial",
+        fontSize: "40px",
+        fontStyle: "bold",
+        color: "#a78bfa",
+      })
+      .setOrigin(0.5);
+
+    if (!this.spectator) {
+      const elapsedSeconds = Math.max(
+        1,
+        Math.round((this.time.now - this.matchStartTime) / 1000),
+      );
+      this.onVictory?.({ wpm: 0, accuracy: 0, time: elapsedSeconds }); // real wpm/accuracy come from React layer
+    }
+  }
+
+  /*
+   * MULTIPLAYER DEFEAT
+   */
+
+  private multiplayerDefeat() {
+    if (this.gameEnded) return;
+    this.gameEnded = true;
+    this.bossRangedEffect?.setVisible(false);
+    this.sound.stopAll();
+
+    this.add.rectangle(
+      this.scale.width / 2,
+      this.scale.height / 2,
+      this.scale.width,
+      this.scale.height,
+      0x000000,
+      0.7,
+    );
+    this.add
+      .text(this.scale.width / 2, this.scale.height / 2, "DEFEATED", {
+        fontFamily: "Arial",
+        fontSize: "40px",
+        fontStyle: "bold",
+        color: "#ff4444",
+      })
+      .setOrigin(0.5);
+
+    if (!this.spectator) this.onDefeat?.();
   }
 
   /*
