@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getUserByDiscordId } from "@/lib/users";
 import "flag-icons/css/flag-icons.min.css";
 import { Metadata } from "next";
+import clientPromise from "@/lib/mongodb";
 
 export const metadata: Metadata = {
   title: "Profile",
@@ -28,9 +29,9 @@ export default async function ProfilePage() {
 
   const countryCode = user.country?.toLowerCase();
   const highestFloor = user.highestFloor ?? 0;
-  const highestFloorRuns =
-    user.floorRuns?.[String(highestFloor)] ?? 0;
+  const highestFloorRuns = user.floorRuns?.[String(highestFloor)] ?? 0;
   const bestTime = formatBestTime(user.bestTime);
+  const rank = await getUserRank(highestFloor, user.bestTime);
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#090b0f] text-white">
@@ -69,7 +70,6 @@ export default async function ProfilePage() {
 
       {/* Content */}
       <div className="relative z-10 mx-auto max-w-5xl px-6 py-12">
-
         {/* Page heading */}
         <div className="mb-10">
           <p className="text-xs font-bold uppercase tracking-[0.4em] text-purple-400">
@@ -83,11 +83,9 @@ export default async function ProfilePage() {
 
         {/* Profile Card */}
         <section className="border border-white/[0.08] bg-white/[0.025]">
-
           {/* Player header */}
           <div className="border-b border-white/[0.07] p-6 md:p-8">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-
               {user.avatar ? (
                 <img
                   src={user.avatar}
@@ -127,14 +125,12 @@ export default async function ProfilePage() {
 
           {/* Country */}
           <div className="border-b border-white/[0.07] p-6 md:p-8">
-
             <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-white/25">
               Country
             </p>
 
             {countryCode ? (
               <div className="flex items-center gap-4">
-
                 <span
                   className={`fi fi-${countryCode}`}
                   style={{
@@ -155,24 +151,19 @@ export default async function ProfilePage() {
                     {user.country}
                   </p>
                 </div>
-
               </div>
             ) : (
-              <p className="text-sm text-white/30">
-                No country selected
-              </p>
+              <p className="text-sm text-white/30">No country selected</p>
             )}
           </div>
 
           {/* Statistics */}
           <div className="p-6 md:p-8">
-
             <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-white/25">
               Statistics
             </p>
 
             <div className="grid gap-px border border-white/[0.07] bg-white/[0.07] sm:grid-cols-2">
-
               {/* WPM */}
               <div className="bg-[#0b0e13] p-6">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-white/25">
@@ -202,23 +193,18 @@ export default async function ProfilePage() {
                   Solo progression
                 </p>
               </div>
-
             </div>
           </div>
-
         </section>
 
         {/* User stats */}
         <div className="mt-6 grid gap-2 sm:grid-cols-3">
-
           <div className="border border-white/[0.06] bg-white/[0.02] p-5">
             <p className="text-[9px] font-bold uppercase tracking-widest text-white/20">
               Best Time
             </p>
 
-            <p className="mt-2 text-2xl font-black">
-              {bestTime}
-            </p>
+            <p className="mt-2 text-2xl font-black">{bestTime}</p>
           </div>
 
           <div className="border border-white/[0.06] bg-white/[0.02] p-5">
@@ -226,9 +212,7 @@ export default async function ProfilePage() {
               Runs
             </p>
 
-            <p className="mt-2 text-2xl font-black">
-              {highestFloorRuns}
-            </p>
+            <p className="mt-2 text-2xl font-black">{highestFloorRuns}</p>
 
             <p className="mt-1 text-[10px] uppercase tracking-widest text-white/15">
               Floor {highestFloor} attempts
@@ -241,19 +225,44 @@ export default async function ProfilePage() {
             </p>
 
             <p className="mt-2 text-2xl font-black">
-              —
+              {rank ? `#${rank}` : "—"}
             </p>
           </div>
-
         </div>
 
         <p className="mt-10 text-center text-[10px] uppercase tracking-[0.25em] text-white/15">
           TypeFighter
         </p>
-
       </div>
     </main>
   );
+}
+
+async function getUserRank(
+  highestFloor: number,
+  bestTime: unknown,
+): Promise<number | null> {
+  if (!highestFloor || highestFloor <= 0) return null;
+
+  const client = await clientPromise;
+  const db = client.db("typefighter");
+  const users = db.collection("users");
+
+  const hasBestTime = typeof bestTime === "number" && Number.isFinite(bestTime);
+
+  const higherRankedCount = await users.countDocuments({
+    $or: [
+      { highestFloor: { $gt: highestFloor } },
+      {
+        highestFloor,
+        ...(hasBestTime
+          ? { bestTime: { $lt: bestTime as number } }
+          : { bestTime: { $exists: true } }),
+      },
+    ],
+  });
+
+  return higherRankedCount + 1;
 }
 
 function getCountryName(code?: string | null) {
