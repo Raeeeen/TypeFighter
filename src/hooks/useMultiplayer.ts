@@ -18,6 +18,7 @@ export function useMultiplayer() {
   const opponentActionHandlers = useRef<
     Record<string, Set<(type: "correct" | "mistake") => void>>
   >({});
+  const [kicked, setKicked] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -46,6 +47,7 @@ export function useMultiplayer() {
           return next;
         });
       };
+
       const onNotInRoom = () => setNotInRoom(true);
       const onPlayerReady = ({ userId, username, floor }: any) => {
         setOpponents((prev) => ({
@@ -53,17 +55,20 @@ export function useMultiplayer() {
           [userId]: { username, floor, status: "playing" },
         }));
       };
+
       const onOpponentAction = ({ userId, type }: any) => {
         opponentActionHandlers.current[userId]?.forEach((handler) =>
           handler(type),
         );
       };
+
       const onOpponentTyping = ({ userId, sentence, text }: any) => {
         setOpponentTyping((prev) => ({
           ...prev,
           [userId]: { sentence, text },
         }));
       };
+
       const onPlayerFinished = ({ userId }: any) => {
         setOpponents((prev) =>
           prev[userId]
@@ -71,6 +76,7 @@ export function useMultiplayer() {
             : prev,
         );
       };
+
       const onResults = ({ ranking }: any) => setResults(ranking);
       const onPlayerLeft = ({ userId }: any) => {
         setOpponents((prev) => {
@@ -79,6 +85,8 @@ export function useMultiplayer() {
           return next;
         });
       };
+
+      const onKicked = () => setKicked(true);
 
       s.on("match:found", onMatchFound);
       s.on("lobby:created", onLobbyCreated);
@@ -91,6 +99,7 @@ export function useMultiplayer() {
       s.on("game:playerFinished", onPlayerFinished);
       s.on("game:results", onResults);
       s.on("game:playerLeft", onPlayerLeft);
+      s.on("lobby:kicked", onKicked);
 
       cleanup = () => {
         s.off("match:found", onMatchFound);
@@ -104,6 +113,7 @@ export function useMultiplayer() {
         s.off("game:playerFinished", onPlayerFinished);
         s.off("game:results", onResults);
         s.off("game:playerLeft", onPlayerLeft);
+        s.off("lobby:kicked", onKicked);
       };
     });
 
@@ -115,6 +125,17 @@ export function useMultiplayer() {
 
   const emitLeave = useCallback(
     (code: string) => socket?.emit("game:leave", { code }),
+    [socket],
+  );
+
+  const emitLobbyLeave = useCallback(
+    (code: string) => socket?.emit("lobby:leave", { code }),
+    [socket],
+  );
+
+  const emitKick = useCallback(
+    (code: string, targetId: string) =>
+      socket?.emit("lobby:kick", { code, targetId }),
     [socket],
   );
 
@@ -131,15 +152,25 @@ export function useMultiplayer() {
     [],
   );
 
-  const joinQueue = useCallback(() => socket?.emit("queue:join"), [socket]);
+  const joinQueue = useCallback(
+    (profile?: {
+      avatar?: string | null;
+      country?: string | null;
+      rank?: number | null;
+    }) => socket?.emit("queue:join", profile ?? {}),
+    [socket],
+  );
+  
   const createLobby = useCallback(
     (maxPlayers: number) => socket?.emit("lobby:create", { maxPlayers }),
     [socket],
   );
+
   const joinLobby = useCallback(
     (code: string) => socket?.emit("lobby:join", { code }),
     [socket],
   );
+
   const startLobby = useCallback(
     (code: string) => socket?.emit("lobby:start", { code }),
     [socket],
@@ -150,16 +181,19 @@ export function useMultiplayer() {
       socket?.emit("game:ready", { code, floor }),
     [socket],
   );
+
   const emitAction = useCallback(
     (code: string, type: "correct" | "mistake") =>
       socket?.emit("game:action", { code, type }),
     [socket],
   );
+
   const emitTyping = useCallback(
     (code: string, sentence: string, text: string) =>
       socket?.emit("game:typing", { code, sentence, text }),
     [socket],
   );
+
   const emitFinish = useCallback(
     (
       code: string,
@@ -188,5 +222,8 @@ export function useMultiplayer() {
     emitFinish,
     emitLeave,
     registerOpponentHandler,
+    kicked,
+    emitLobbyLeave,
+    emitKick,
   };
 }

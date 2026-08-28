@@ -27,5 +27,41 @@ export default async function MatchmakingPage() {
     redirect("/onboarding");
   }
 
-  return <MatchmakingClient username={session.user?.name ?? "Player"} />;
+  const rank = await getUserRank(user.highestFloor ?? 0, user.bestTime);
+
+  return (
+    <MatchmakingClient
+      username={session.user?.name ?? "Player"}
+      avatar={session.user?.image ?? null}
+      country={user.country ?? null}
+      rank={rank}
+    />
+  );
+}
+
+async function getUserRank(
+  highestFloor: number,
+  bestTime: unknown,
+): Promise<number | null> {
+  if (!highestFloor || highestFloor <= 0) return null;
+
+  const client = await clientPromise;
+  const db = client.db("typefighter");
+  const users = db.collection("users");
+
+  const hasBestTime = typeof bestTime === "number" && Number.isFinite(bestTime);
+
+  const higherRankedCount = await users.countDocuments({
+    $or: [
+      { highestFloor: { $gt: highestFloor } },
+      {
+        highestFloor,
+        ...(hasBestTime
+          ? { bestTime: { $lt: bestTime as number } }
+          : { bestTime: { $exists: true } }),
+      },
+    ],
+  });
+
+  return higherRankedCount + 1;
 }
