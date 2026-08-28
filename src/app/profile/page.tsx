@@ -5,6 +5,7 @@ import { getUserByDiscordId } from "@/lib/users";
 import "flag-icons/css/flag-icons.min.css";
 import { Metadata } from "next";
 import clientPromise from "@/lib/mongodb";
+import ProfileVisibilityToggle from "@/components/ProfileVisibilityToggle";
 
 export const metadata: Metadata = {
   title: "Profile",
@@ -32,6 +33,7 @@ export default async function ProfilePage() {
   const highestFloorRuns = user.floorRuns?.[String(highestFloor)] ?? 0;
   const bestTime = formatBestTime(user.bestTime);
   const rank = await getUserRank(highestFloor, user.bestTime);
+  const profileHidden = user.profileHidden ?? false;
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#090b0f] text-white">
@@ -228,6 +230,10 @@ export default async function ProfilePage() {
               {rank ? `#${rank}` : "—"}
             </p>
           </div>
+        </div>
+
+        <div className="mt-6">
+          <ProfileVisibilityToggle initialHidden={profileHidden} />
         </div>
 
         <p className="mt-10 text-center text-[10px] uppercase tracking-[0.25em] text-white/15">

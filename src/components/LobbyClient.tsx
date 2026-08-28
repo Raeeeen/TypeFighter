@@ -11,7 +11,16 @@ type View = "choose" | "create" | "join" | "room";
 
 export default function LobbyClient({ username }: { username: string }) {
   const router = useRouter();
-  const { socket, room, createLobby, joinLobby, startLobby } = useMultiplayer();
+  const {
+    socket,
+    room,
+    createLobby,
+    joinLobby,
+    startLobby,
+    kicked,
+    emitLobbyLeave,
+    emitKick,
+  } = useMultiplayer();
 
   const [view, setView] = useState<View>("choose");
   const [maxPlayers, setMaxPlayers] = useState(4);
@@ -32,10 +41,29 @@ export default function LobbyClient({ username }: { username: string }) {
   }, [room]);
 
   useEffect(() => {
-    if (room?.status === "in_progress" || room?.status === "starting") {
-      router.push(`/game?mode=multiplayer&room=${room.code}`);
+    if (kicked) {
+      router.replace("/multiplayer");
     }
-  }, [room, router]);
+  }, [kicked, router]);
+
+  useEffect(() => {
+    if (!room?.code) return;
+    const leave = () => emitLobbyLeave(room.code);
+    window.addEventListener("beforeunload", leave);
+    return () => {
+      window.removeEventListener("beforeunload", leave);
+      leave();
+    };
+  }, [room?.code, emitLobbyLeave]);
+
+  useEffect(() => {
+    if (!room?.code) return;
+    const leave = () => emitLobbyLeave(room.code);
+    window.addEventListener("beforeunload", leave);
+    return () => {
+      window.removeEventListener("beforeunload", leave);
+    };
+  }, [room?.code, emitLobbyLeave]);
 
   const isHost = room && socket && room.hostId === socket.id;
 
@@ -265,6 +293,15 @@ export default function LobbyClient({ username }: { username: string }) {
                           {p.ready ? "Ready ✓ (click to unready)" : "Ready Up"}
                         </button>
                       )}
+
+                      {isHost && !isPlayerHost && (
+                        <button
+                          onClick={() => emitKick(room.code, p.id)}
+                          className="border border-red-400/30 bg-red-500/10 px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-red-400 transition hover:bg-red-500/20"
+                        >
+                          Kick
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -284,7 +321,10 @@ export default function LobbyClient({ username }: { username: string }) {
 
             <div className="mt-8 flex gap-3">
               <button
-                onClick={() => router.push("/multiplayer")}
+                onClick={() => {
+                  if (room?.code) emitLobbyLeave(room.code);
+                  router.push("/multiplayer");
+                }}
                 className="border border-white/10 px-6 py-3 text-xs font-bold uppercase tracking-widest text-white/40 transition hover:border-red-400/40 hover:text-red-400"
               >
                 Leave

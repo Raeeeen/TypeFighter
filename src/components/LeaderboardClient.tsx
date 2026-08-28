@@ -56,9 +56,10 @@ export default function LeaderboardClient({ entries }: Props) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedCountry = country !== "all"
-    ? countryList.find((item) => item.code === country)
-    : null;
+  const selectedCountry =
+    country !== "all"
+      ? countryList.find((item) => item.code === country)
+      : null;
   const filteredCountries = countryList.filter((item) =>
     item.name.toLowerCase().includes(countrySearch.toLowerCase()),
   );
@@ -145,7 +146,9 @@ export default function LeaderboardClient({ entries }: Props) {
                   </span>
                 )}
               </span>
-              <span className={`text-[10px] text-white/30 transition-transform ${countryOpen ? "rotate-180" : ""}`}>
+              <span
+                className={`text-[10px] text-white/30 transition-transform ${countryOpen ? "rotate-180" : ""}`}
+              >
                 ▼
               </span>
             </button>
@@ -181,7 +184,9 @@ export default function LeaderboardClient({ entries }: Props) {
                     <span className="text-lg">🌐</span>
                     <span>All Countries</span>
                     {country === "all" && (
-                      <span className="ml-auto text-xs font-black text-purple-400">✓</span>
+                      <span className="ml-auto text-xs font-black text-purple-400">
+                        ✓
+                      </span>
                     )}
                   </button>
 
@@ -210,9 +215,13 @@ export default function LeaderboardClient({ entries }: Props) {
                             flexShrink: 0,
                           }}
                         />
-                        <span className="text-sm font-semibold">{item.name}</span>
+                        <span className="text-sm font-semibold">
+                          {item.name}
+                        </span>
                         {isSelected && (
-                          <span className="ml-auto text-xs font-black text-purple-400">✓</span>
+                          <span className="ml-auto text-xs font-black text-purple-400">
+                            ✓
+                          </span>
                         )}
                       </button>
                     );
@@ -247,7 +256,7 @@ export default function LeaderboardClient({ entries }: Props) {
                 </div>
 
                 <Link
-                  href="/profile"
+                  href={`/profile/${entry.username}`}
                   className="flex min-w-0 items-center gap-3 transition hover:text-purple-300"
                 >
                   {entry.avatar ? (
@@ -297,9 +306,7 @@ export default function LeaderboardClient({ entries }: Props) {
                   </p>
                 </div>
 
-                <div className="font-black text-purple-400">
-                  {entry.wpm}
-                </div>
+                <div className="font-black text-purple-400">{entry.wpm}</div>
               </div>
             );
           })

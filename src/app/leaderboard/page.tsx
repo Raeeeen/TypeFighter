@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
-  description: "See the fastest typists in TypeFighter, ranked by WPM and floors cleared.",
+  description:
+    "See the fastest typists in TypeFighter, ranked by WPM and floors cleared.",
 };
 
 export type LeaderboardEntry = {
@@ -103,8 +104,6 @@ export default async function LeaderboardPage() {
               Top 100 fighters ranked by highest floor, then fastest best time.
             </p>
           </div>
-
-        
         </div>
 
         <LeaderboardClient entries={entries} />
