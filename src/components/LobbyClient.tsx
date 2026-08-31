@@ -3,7 +3,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMultiplayer } from "@/hooks/useMultiplayer";
 
@@ -26,6 +26,8 @@ export default function LobbyClient({ username }: { username: string }) {
   const [maxPlayers, setMaxPlayers] = useState(4);
   const [joinCode, setJoinCode] = useState("");
   const [error, setError] = useState("");
+  const roomRef = useRef(room);
+  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     if (!socket) return;
@@ -37,8 +39,22 @@ export default function LobbyClient({ username }: { username: string }) {
   }, [socket]);
 
   useEffect(() => {
+    if (error) setStarting(false);
+  }, [error]);
+
+  useEffect(() => {
     if (room?.code) setView("room");
   }, [room]);
+
+  useEffect(() => {
+    roomRef.current = room;
+  }, [room]);
+
+  useEffect(() => {
+    if (room?.status === "in_progress" || room?.status === "starting") {
+      router.push(`/game?mode=multiplayer&room=${room.code}`);
+    }
+  }, [room, router]);
 
   useEffect(() => {
     if (kicked) {
@@ -47,23 +63,22 @@ export default function LobbyClient({ username }: { username: string }) {
   }, [kicked, router]);
 
   useEffect(() => {
-    if (!room?.code) return;
-    const leave = () => emitLobbyLeave(room.code);
-    window.addEventListener("beforeunload", leave);
-    return () => {
-      window.removeEventListener("beforeunload", leave);
-      leave();
+    const leave = () => {
+      const r = roomRef.current;
+      if (r?.code) emitLobbyLeave(r.code);
     };
-  }, [room?.code, emitLobbyLeave]);
 
-  useEffect(() => {
-    if (!room?.code) return;
-    const leave = () => emitLobbyLeave(room.code);
     window.addEventListener("beforeunload", leave);
+
     return () => {
       window.removeEventListener("beforeunload", leave);
+
+      const r = roomRef.current;
+      if (r?.code && r.status !== "in_progress" && r.status !== "starting") {
+        emitLobbyLeave(r.code);
+      }
     };
-  }, [room?.code, emitLobbyLeave]);
+  }, [emitLobbyLeave]);
 
   const isHost = room && socket && room.hostId === socket.id;
 
@@ -284,7 +299,8 @@ export default function LobbyClient({ username }: { username: string }) {
                       {isMe && !isPlayerHost && (
                         <button
                           onClick={() => toggleReady(room.code)}
-                          className={`border px-3 py-1 text-[9px] font-bold uppercase tracking-widest transition ${
+                          disabled={room.status !== "waiting"}
+                          className={`border px-3 py-1 text-[9px] font-bold uppercase tracking-widest transition disabled:opacity-40 disabled:cursor-not-allowed ${
                             p.ready
                               ? "border-green-400/30 bg-green-500/10 text-green-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-400/30"
                               : "border-purple-400/30 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20"
@@ -331,14 +347,20 @@ export default function LobbyClient({ username }: { username: string }) {
               </button>
               {isHost && (
                 <button
-                  onClick={() => startLobby(room.code)}
+                  onClick={() => {
+                    setStarting(true);
+                    startLobby(room.code);
+                  }}
                   disabled={
+                    starting ||
                     room.players.length < 2 ||
                     !room.players.every((p: any) => p.ready)
                   }
                   className="flex-1 bg-purple-500 px-6 py-3 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-purple-400 disabled:opacity-30"
                 >
-                  Start Match ({readyCount}/{room.players.length} ready)
+                  {starting
+                    ? "Starting..."
+                    : `Start Match (${readyCount}/${room.players.length} ready)`}
                 </button>
               )}
             </div>
