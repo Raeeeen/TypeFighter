@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable react-hooks/purity */
 /* eslint-disable react-hooks/refs */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -62,6 +63,7 @@ export default function MultiplayerGameClient({
   const [canType, setCanType] = useState(false);
   const [volume, setVolume] = useState(0.35);
   const [sceneReady, setSceneReady] = useState(false);
+  const [waitingForOpponents, setWaitingForOpponents] = useState(false);
 
   useEffect(() => {
     if (notInRoom) router.replace("/multiplayer");
@@ -71,6 +73,14 @@ export default function MultiplayerGameClient({
     if (!sceneReady) return;
     announceReady(roomCode, myFloor);
   }, [sceneReady, roomCode, myFloor, announceReady]);
+
+  useEffect(() => {
+    if (sceneReady && countdown === null) {
+      setWaitingForOpponents(true);
+    } else if (countdown !== null) {
+      setWaitingForOpponents(false);
+    }
+  }, [sceneReady, countdown]);
 
   useEffect(() => {
     if (focusedId === "self" && !finished) {
@@ -103,7 +113,6 @@ export default function MultiplayerGameClient({
     window.addEventListener("beforeunload", leave);
     return () => {
       window.removeEventListener("beforeunload", leave);
-      leave();
     };
   }, [roomCode, emitLeave]);
 
@@ -238,6 +247,15 @@ export default function MultiplayerGameClient({
                   <div className="h-8 w-8 animate-spin rounded-full border-2 border-purple-400/30 border-t-purple-400" />
                   <span className="text-xs font-bold uppercase tracking-widest text-white/30">
                     Loading assets...
+                  </span>
+                </div>
+              )}
+
+              {waitingForOpponents && (
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/85">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-purple-400/30 border-t-purple-400" />
+                  <span className="text-xs font-bold uppercase tracking-widest text-white/30">
+                    Waiting for opponent to load...
                   </span>
                 </div>
               )}

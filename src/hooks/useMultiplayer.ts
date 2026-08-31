@@ -48,7 +48,10 @@ export function useMultiplayer() {
         });
       };
 
-      const onNotInRoom = () => setNotInRoom(true);
+      const onNotInRoom = () => {
+        setNotInRoom(true);
+      };
+
       const onPlayerReady = ({ userId, username, floor }: any) => {
         setOpponents((prev) => ({
           ...prev,
@@ -160,7 +163,7 @@ export function useMultiplayer() {
     }) => socket?.emit("queue:join", profile ?? {}),
     [socket],
   );
-  
+
   const createLobby = useCallback(
     (maxPlayers: number) => socket?.emit("lobby:create", { maxPlayers }),
     [socket],
