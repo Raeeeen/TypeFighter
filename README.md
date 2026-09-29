@@ -6,6 +6,16 @@ Each boss has text that the player needs to type. The faster you type and defeat
 
 The game includes **Solo** and **Multiplayer** modes, with leaderboards that track your progress and fastest times.
 
+## Test the Game
+
+You can try the current version of TypeFighter here:
+
+**https://typefighter.onrender.com/**
+
+To play the game, **log in using your Discord account**.
+
+The game is still in development, so some features may still be incomplete or change as development continues.
+
 ## Solo Mode
 
 In Solo Mode, you fight through **10 floors**, with a different boss on each floor.
@@ -33,7 +43,7 @@ The goal is to reach higher floors while also defeating each boss as quickly as 
 
 ## Leaderboards
 
-The leaderboard tracks your **highest floor reached** and your **fastest time**.
+The leaderboard tracks your **highest floor reached** and **fastest time**.
 
 The main goal is to:
 
@@ -93,4 +103,4 @@ The game combines typing mechanics with boss fights and competitive leaderboards
 
 **Currently In Development**
 
-TypeFighter is still being developed, with new features, improvements, and multiplayer functionality being worked on.
+TypeFighter is still being developed, with new features, improvements, and
