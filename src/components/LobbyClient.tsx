@@ -105,7 +105,6 @@ export default function LobbyClient({ username }: { username: string }) {
         <div className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-500/[0.06] blur-[180px]" />
       </div>
 
-      {/* Header */}
       <header className="relative z-10 flex h-20 items-center justify-between border-b border-white/[0.06] px-6 md:px-10">
         <Link
           href="/"

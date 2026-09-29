@@ -128,7 +128,6 @@ export default function GameClient({
 
   return (
     <div className="min-h-screen bg-[#090b0f] text-white">
-      {/* HEADER */}
       <header className="flex h-16 items-center justify-between border-b border-white/[0.06] px-6">
         <div className="text-lg font-black tracking-tight">
           TYPE<span className="text-purple-400">FIGHTER</span>

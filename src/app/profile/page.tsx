@@ -37,7 +37,6 @@ export default async function ProfilePage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#090b0f] text-white">
-      {/* Background */}
       <div className="pointer-events-none fixed inset-0">
         <div
           className="absolute inset-0 opacity-[0.035]"
@@ -53,7 +52,6 @@ export default async function ProfilePage() {
         <div className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-500/[0.06] blur-[180px]" />
       </div>
 
-      {/* Header */}
       <header className="relative z-10 flex h-20 items-center justify-between border-b border-white/[0.06] px-6 md:px-10">
         <Link
           href="/"
@@ -70,9 +68,7 @@ export default async function ProfilePage() {
         </Link>
       </header>
 
-      {/* Content */}
       <div className="relative z-10 mx-auto max-w-5xl px-6 py-12">
-        {/* Page heading */}
         <div className="mb-10">
           <p className="text-xs font-bold uppercase tracking-[0.4em] text-purple-400">
             Fighter Profile
@@ -83,9 +79,7 @@ export default async function ProfilePage() {
           </h1>
         </div>
 
-        {/* Profile Card */}
         <section className="border border-white/[0.08] bg-white/[0.025]">
-          {/* Player header */}
           <div className="border-b border-white/[0.07] p-6 md:p-8">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
               {user.avatar ? (
@@ -114,7 +108,6 @@ export default async function ProfilePage() {
                 </p>
               </div>
 
-              {/* Online status */}
               <div className="flex items-center gap-2 self-start border border-green-400/10 bg-green-400/[0.04] px-3 py-2 sm:self-center">
                 <span className="h-2 w-2 rounded-full bg-green-400" />
 
@@ -125,7 +118,6 @@ export default async function ProfilePage() {
             </div>
           </div>
 
-          {/* Country */}
           <div className="border-b border-white/[0.07] p-6 md:p-8">
             <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-white/25">
               Country
@@ -159,7 +151,6 @@ export default async function ProfilePage() {
             )}
           </div>
 
-          {/* Statistics */}
           <div className="p-6 md:p-8">
             <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-white/25">
               Statistics
@@ -181,7 +172,6 @@ export default async function ProfilePage() {
                 </p>
               </div>
 
-              {/* Highest Floor */}
               <div className="bg-[#0b0e13] p-6">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-white/25">
                   Highest Floor
@@ -199,7 +189,6 @@ export default async function ProfilePage() {
           </div>
         </section>
 
-        {/* User stats */}
         <div className="mt-6 grid gap-2 sm:grid-cols-3">
           <div className="border border-white/[0.06] bg-white/[0.02] p-5">
             <p className="text-[9px] font-bold uppercase tracking-widest text-white/20">

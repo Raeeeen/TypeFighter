@@ -34,7 +34,6 @@ export default async function SoloPage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#090b0f] text-white">
-      {/* Background */}
       <div className="pointer-events-none fixed inset-0">
         <div
           className="absolute inset-0 opacity-[0.035]"
@@ -50,7 +49,6 @@ export default async function SoloPage() {
         <div className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-500/[0.06] blur-[180px]" />
       </div>
 
-      {/* Header */}
       <header className="relative z-10 flex h-20 items-center justify-between border-b border-white/[0.06] px-6 md:px-10">
         <Link
           href="/"
@@ -67,9 +65,7 @@ export default async function SoloPage() {
         </Link>
       </header>
 
-      {/* Content */}
       <div className="relative z-10 mx-auto max-w-5xl px-6 py-16">
-        {/* Heading */}
         <div className="mb-12">
           <p className="text-xs font-bold uppercase tracking-[0.4em] text-purple-400">
             Solo Campaign
@@ -87,7 +83,6 @@ export default async function SoloPage() {
           </p>
         </div>
 
-        {/* Floor progress */}
         <div className="mb-8 flex items-center justify-between border-b border-white/[0.07] pb-5">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/25">
@@ -111,7 +106,6 @@ export default async function SoloPage() {
           </div>
         </div>
 
-        {/* Floors */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {floors.map((floor) => {
             const unlocked = floor <= highestFloor + 1;
@@ -195,7 +189,6 @@ export default async function SoloPage() {
           })}
         </div>
 
-        {/* Footer */}
         <p className="mt-10 text-center text-[10px] uppercase tracking-[0.3em] text-white/15">
           TypeFighter • Solo Campaign • 10 Floors
         </p>

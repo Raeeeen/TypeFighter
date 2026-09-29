@@ -57,7 +57,6 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#090b0f] text-white">
-      {/* Background grid */}
       <div className="pointer-events-none fixed inset-0">
         <div
           className="absolute inset-0 opacity-[0.035]"
@@ -73,7 +72,6 @@ export default async function Home() {
         <div className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-500/[0.06] blur-[180px]" />
       </div>
 
-      {/* Header */}
       <header className="relative z-10 flex h-20 items-center justify-between border-b border-white/[0.06] px-6 md:px-10">
         <Link
           href="/"
@@ -83,7 +81,6 @@ export default async function Home() {
         </Link>
 
         <div className="flex items-center gap-4">
-          {/* User info */}
           <div className="hidden text-right sm:block">
             <p className="text-xs font-bold text-white/80">
               {session?.user?.name ?? "PLAYER"}
@@ -104,7 +101,6 @@ export default async function Home() {
             <div className="h-10 w-10 border border-white/10 bg-white/10" />
           )}
 
-          {/* Logout */}
           <form
             action={async () => {
               "use server";
@@ -124,7 +120,6 @@ export default async function Home() {
         </div>
       </header>
 
-      {/* Main */}
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-5rem)] max-w-6xl items-center px-6 py-12">
         <div className="grid w-full gap-16 lg:grid-cols-[1fr_420px] lg:items-center">
           <section>
@@ -145,7 +140,6 @@ export default async function Home() {
               Climb the stages and prove you&apos;re the fastest fighter.
             </p>
 
-            {/* Game stats */}
             <div className="mt-10 flex gap-10 border-t border-white/[0.07] pt-6">
               <div>
                 <p className="text-2xl font-black">{registeredPlayers}</p>
@@ -167,14 +161,12 @@ export default async function Home() {
             </div>
           </section>
 
-          {/* Menu */}
           <section className="w-full">
             <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.3em] text-white/25">
               Game modes
             </p>
 
             <div className="space-y-2">
-              {/* SOLO */}
               <Link
                 href="/solo"
                 className="group relative block overflow-hidden border border-purple-400/30 bg-purple-500/[0.08] p-6 transition duration-200 hover:border-purple-400/70 hover:bg-purple-500/[0.14]"
@@ -196,7 +188,6 @@ export default async function Home() {
                 </div>
               </Link>
 
-              {/* MULTIPLAYER */}
               <Link
                 href="/multiplayer"
                 className="group relative block overflow-hidden border border-purple-400/30 bg-purple-500/[0.08] p-6 transition duration-200 hover:border-purple-400/70 hover:bg-purple-500/[0.14]"
@@ -220,7 +211,6 @@ export default async function Home() {
                 </div>
               </Link>
 
-              {/* LEADERBOARDS */}
               <Link
                 href="/leaderboard"
                 className="group block border border-white/[0.07] bg-white/[0.025] p-6 transition hover:border-white/20 hover:bg-white/[0.05]"
@@ -242,7 +232,6 @@ export default async function Home() {
                 </div>
               </Link>
 
-              {/* PROFILE */}
               <Link
                 href="/profile"
                 className="group block border border-white/[0.07] bg-white/[0.025] p-6 transition hover:border-white/20 hover:bg-white/[0.05]"

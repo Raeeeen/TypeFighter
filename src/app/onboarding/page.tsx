@@ -102,7 +102,6 @@ export default function OnboardingPage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#090b0f] text-white">
-      {/* Background */}
       <div className="pointer-events-none fixed inset-0">
         <div
           className="absolute inset-0 opacity-[0.035]"
@@ -118,18 +117,15 @@ export default function OnboardingPage() {
         <div className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-500/[0.07] blur-[180px]" />
       </div>
 
-      {/* Logo */}
       <header className="relative z-10 flex h-20 items-center border-b border-white/[0.06] px-6 md:px-10">
         <div className="text-xl font-black tracking-tight">
           TYPE<span className="text-purple-400">FIGHTER</span>
         </div>
       </header>
 
-      {/* Content */}
       <div className="relative z-10 flex min-h-[calc(100vh-5rem)] items-center justify-center px-6 py-12">
         <div className="w-full max-w-xl">
 
-          {/* Heading */}
           <div className="mb-10 text-center">
             <p className="text-xs font-bold uppercase tracking-[0.4em] text-purple-400">
               Welcome, Fighter
@@ -147,17 +143,14 @@ export default function OnboardingPage() {
             </p>
           </div>
 
-          {/* Card */}
           <div className="border border-white/[0.08] bg-white/[0.025] p-6 md:p-8">
 
             <label className="mb-3 block text-[10px] font-bold uppercase tracking-[0.3em] text-white/30">
               Country
             </label>
 
-            {/* Custom Country Picker */}
             <div ref={dropdownRef} className="relative">
 
-              {/* Selected country button */}
               <button
                 type="button"
                 disabled={loading}
@@ -204,7 +197,6 @@ export default function OnboardingPage() {
                 </span>
               </button>
 
-              {/* Dropdown */}
               {open && (
                 <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden border border-white/[0.1] bg-[#0d1016] shadow-2xl shadow-black/50">
 
@@ -265,7 +257,6 @@ export default function OnboardingPage() {
                               {item.name}
                             </span>
 
-                            {/* Selected indicator */}
                             {isSelected && (
                               <span className="ml-auto text-xs font-black text-purple-400">
                                 ✓
@@ -285,7 +276,6 @@ export default function OnboardingPage() {
 
                   </div>
 
-                  {/* Result count */}
                   <div className="border-t border-white/[0.06] px-4 py-2">
                     <p className="text-[9px] font-bold uppercase tracking-widest text-white/20">
                       {filteredCountries.length} countries
